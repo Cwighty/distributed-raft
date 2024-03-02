@@ -1,5 +1,6 @@
-using Raft.Shop.Client.Pages;
 using Raft.Shop.Components;
+using Raft.Observability;
+using Raft.Shop.Client.Pages;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
+
+builder.AddObservability();
 
 var app = builder.Build();
 

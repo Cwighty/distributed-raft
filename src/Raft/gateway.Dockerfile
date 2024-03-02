@@ -47,7 +47,7 @@ RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS development
 COPY . /src
 WORKDIR /src/Raft.Gateway
-CMD dotnet run --no-launch-profile
+CMD dotnet watch run --no-launch-profile --non-interactive --no-hotreload
 
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
