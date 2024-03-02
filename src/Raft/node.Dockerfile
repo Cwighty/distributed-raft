@@ -51,7 +51,7 @@ RUN --mount=type=bind,target=/docker-context \
     find ./ -mindepth 0 -maxdepth 4 \( -name "*.sln" -o -name "*.csproj" -o -iname "nuget.config" \) -exec cp --parents "{}" /src \;
 COPY . /src
 WORKDIR /src/Raft.Node
-CMD dotnet watch run --no-launch-profile --non-interactive --no-hotreload
+CMD dotnet watch run --no-launch-profile --non-interactive --no-hot-reload
 
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final

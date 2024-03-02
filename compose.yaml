@@ -14,10 +14,10 @@ x-dotnet_sync: &dotnet_sync
           - ./src/Raft/Raft.Node/obj
           - ./src/Raft/Raft.Observability/bin
           - ./src/Raft/Raft.Observability/obj
-          - ./src/Raft/Raft.Shop/bin
-          - ./src/Raft/Raft.Shop/obj
-          - ./src/Raft/Raft.Shop.Client/bin
-          - ./src/Raft/Raft.Shop.Client/obj
+          - ./src/Raft/Raft.Shop/Raft.Shop/bin
+          - ./src/Raft/Raft.Shop/Raft.Shop/obj
+          - ./src/Raft/Raft.Shop/Raft.Shop.Client/bin
+          - ./src/Raft/Raft.Shop/Raft.Shop.Client/obj
 
 x-node_base: &node_base
   build:
