@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Serilog.Context;
 
-namespace Chat.Observability.Middleware;
+namespace Raft.Observability.Middleware;
 
 public class TraceIdResponseHeaderMiddleware
 {

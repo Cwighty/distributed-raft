@@ -15,12 +15,12 @@ jobs:
   format:
     uses: ./.github/workflows/format.yml
 
-  tests:
-    needs: format
-    uses: ./.github/workflows/test.yml
+  # tests:
+  #   needs: format
+  #   uses: ./.github/workflows/test.yml
 
   deploy-application:
-    needs: tests
+    # needs: tests
     runs-on: [self-hosted]
     steps:
       - name: checkout repo

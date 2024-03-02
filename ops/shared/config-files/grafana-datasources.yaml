@@ -14,16 +14,6 @@ datasources:
     jsonData:
       tlsSkipVerify: true
 
-  # - name: Zipkin
-  #   type: zipkin
-  #   url: http://zipkin:9411
-  #   access: proxy
-  #   orgId: 1
-  #   version: 1
-  #   apiVersion: 1
-  #   isDefault: false
-  #   uid: zipkin-id
-
   - name: Tempo
     type: tempo
     access: proxy

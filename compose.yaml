@@ -13,7 +13,6 @@ x-node-environment: &node-environment
   TZ: America/Denver
 
 services:
-
   nginx:
     depends_on:
       - shop 
