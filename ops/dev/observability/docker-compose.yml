@@ -1,0 +1,36 @@
+include:
+  - compose.collector.yml
+  - compose.tracing.yml
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--web.listen-address=:8080"
+    environment:
+      - config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ../../shared/config-files/prometheus.yaml:/etc/prometheus/prometheus.yml
+
+  loki:
+    image: grafana/loki:latest
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+
+
+  grafana:
+    image: grafana/grafana:latest
+    volumes:
+      - ../../shared/config-files/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ../../shared/config-files/grafana-dashboards.yaml:/etc/grafana/provisioning/dashboards/default.yaml
+      - ../../shared/dashboards:/var/lib/grafana/dashboards
+      - ../../shared/config-files/grafana.ini:/etc/grafana/grafana.ini
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    depends_on:
+      - tempo
+      - prometheus
+      - loki
+      - collector

@@ -1,0 +1,37 @@
+name: Deploy
+
+env:
+  DUCKDNSTOKEN: ${{ secrets.DUCKDNSTOKEN }}
+  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+  POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  format:
+    uses: ./.github/workflows/format.yml
+
+  tests:
+    needs: format
+    uses: ./.github/workflows/test.yml
+
+  deploy-application:
+    needs: tests
+    runs-on: [self-hosted]
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v3
+
+      - name: redeploy application
+        run: |
+          cd ops/prod
+          docker compose pull
+          docker stop dc-swag
+          docker rm dc-swag
+          docker compose build
+          docker compose down
+          docker compose up -d

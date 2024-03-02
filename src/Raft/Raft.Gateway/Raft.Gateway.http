@@ -1,0 +1,6 @@
+@Raft.Gateway_HostAddress = http://localhost:5109
+
+GET {{Raft.Gateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

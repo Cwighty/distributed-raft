@@ -1,0 +1,96 @@
+name: Deploy To Production
+
+env:
+  DUCKDNSTOKEN: ${{ secrets.DUCKDNSTOKEN }}
+  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+  POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+on:
+  workflow_dispatch:
+
+jobs:
+  format:
+    uses: ./.github/workflows/format.yml
+
+  tests:
+    needs: [format]
+    uses: ./.github/workflows/test.yml
+
+  check-changes:
+    runs-on: self-hosted
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Check for changes in specific services and other files
+        id: check_changes
+        uses: dorny/paths-filter@v2
+        with:
+          list-files: shell
+          filters: |
+            imageprocessing:
+              - 'src/Chat/Chat.ImageProcessing/**'
+            chat:
+              - 'src/Chat/Chat.Web/**'
+            any_other:
+              - 'ops/prod/**'
+              - 'ops/shared/**'
+              - 'src/Chat/Chat.Observability/**'
+              - 'src/Chat/Chat.Data/**'
+              - 'src/ChatDatabase/**'
+              - '.github/workflows/**'
+
+      - name: Set matrix for deployment
+        id: set-matrix
+        run: |
+          matrix="{\"include\":["
+
+          if [[ "${{ steps.check_changes.outputs.imageprocessing }}" == "true" ]]; then
+            matrix+="{\"service\":\"imageprocessing\"},"
+          fi
+          if [[ "${{ steps.check_changes.outputs.chat }}" == "true" ]]; then
+            matrix+="{\"service\":\"chat\"},"
+          fi
+          if [[ "${{ steps.check_changes.outputs.any_other }}" == "true" ]]; then
+            matrix+="{\"service\":\"all\"},"
+          fi
+
+          # Remove trailing comma if any service has been added
+          matrix=${matrix%,}
+          matrix+="]}"
+
+          # Ensure that the matrix is not an empty string
+          if [[ "$matrix" == "{\"include\":[]}" ]]; then
+            echo "::set-output name=matrix::"
+          else
+            echo "::set-output name=matrix::$matrix"
+          fi
+
+  deploy:
+    needs: [check-changes, tests]
+    runs-on: self-hosted
+    if: ${{ needs.check-changes.outputs.matrix != '' }}
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.check-changes.outputs.matrix)}}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Deploy all services
+        if: ${{ matrix.service == 'all' }}
+        run: |
+          cd ops/prod
+          docker compose pull
+          docker compose build
+          docker compose down
+          docker compose up -d
+
+      - name: Deploy specific service
+        if: ${{ matrix.service != 'all' }}
+        run: |
+          cd ops/prod
+          docker compose pull
+          docker compose build
+          docker compose down ${{ matrix.service }}
+          docker compose up -d ${{ matrix.service }}

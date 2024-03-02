@@ -1,0 +1,125 @@
+version: "3.9"
+
+include:
+  - compose.telemetry.yml
+
+x-imageprocessing-base: &imageprocessing_base
+  build:
+    context: ../../src/Chat/
+    dockerfile: Chat.ImageProcessing/Dockerfile
+  restart: always
+
+x-imageprocessing-environment: &imageprocessing-environment
+  ObservabilityOptions__CollectorUrl: http://collector:4317
+  MicroServiceOptions__Redis: cache
+  ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
+  MicroServiceOptions__ImageDirectory: /app/images
+  TZ: America/Denver
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: dc-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: America/Denver
+    volumes:
+      - dc-postgres-data:/var/lib/postgresql/data
+      - ../../src/ChatDatabase/init-scripts:/docker-entrypoint-initdb.d
+    restart: always
+
+  chat:
+    container_name: dc-chat
+    build:
+      context: ../../src/Chat/
+      dockerfile: Chat.Web/Chat.Web/Dockerfile
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
+      - ApiBaseAddress=https://chatabit.duckdns.org:1234
+      - ChatApiOptions__ImageProcessingApiUrl=https://chatabit.duckdns.org:1234
+      - ObservabilityOptions__CollectorUrl=http://collector:4317
+      - TZ=America/Denver
+    restart: always
+
+  signalrserver:
+    container_name: dc-signalrserver
+    build:
+      context: ../../src/Chat/
+      dockerfile: Chat.SignalRServer/Dockerfile
+    restart: always
+
+  imageprocessing1:
+    <<: *imageprocessing_base
+    container_name: dc-imageprocessing1
+    environment:
+      <<: *imageprocessing-environment
+      MicroServiceOptions__Identifier: 1
+      ObservabilityOptions__ServiceName: ChatImageProcessing1
+    volumes:
+      - images1:/app/images
+
+  imageprocessing2:
+    <<: *imageprocessing_base
+    container_name: dc-imageprocessing2
+    environment:
+      <<: *imageprocessing-environment
+      MicroServiceOptions__Identifier: 2
+      ObservabilityOptions__ServiceName: ChatImageProcessing2
+    volumes:
+      - images2:/app/images
+
+  imageprocessing3:
+    <<: *imageprocessing_base
+    container_name: dc-imageprocessing3
+    environment:
+      <<: *imageprocessing-environment
+      MicroServiceOptions__Identifier: 3
+      ObservabilityOptions__ServiceName: ChatImageProcessing3
+    volumes:
+      - images3:/app/images
+
+  imageredundancy:
+    container_name: dc-imageredundancy
+    build:
+      context: ../../src/Chat/
+      dockerfile: Chat.ImageRedundancy/Dockerfile
+    environment:
+      ObservabilityOptions__ServiceName: ChatImageRedundancy
+      ObservabilityOptions__CollectorUrl: http://collector:4317
+      MicroServiceOptions__SleepInterval: 30
+      MicroServiceOptions__ImageProcessingServiceName: imageprocessing
+      MicroServiceOptions__ImageProcessingServiceCount: 3
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
+      TZ: America/Denver
+
+  swag:
+    container_name: dc-swag
+    image: lscr.io/linuxserver/swag
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Denver
+      - URL=chatabit.duckdns.org
+      - VALIDATION=duckdns
+      - DUCKDNSTOKEN=${DUCKDNSTOKEN}
+      - STAGING=false
+    volumes:
+      - /home/caleb/data/swag:/config
+      - ./swag-default.conf:/config/nginx/site-confs/default.conf
+    ports:
+      - 0.0.0.0:1234:443
+    restart: unless-stopped
+
+  cache:
+    container_name: dc-redis
+    image: redis:latest
+    restart: always
+
+volumes:
+  images1:
+  images2:
+  images3:
