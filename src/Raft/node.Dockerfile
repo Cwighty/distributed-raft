@@ -45,6 +45,10 @@ RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
 
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS development
+# https://stackoverflow.com/questions/68597982/net-package-restore-in-docker-cached-separately-from-build
+RUN --mount=type=bind,target=/docker-context \
+    cd /docker-context/; \
+    find ./ -mindepth 0 -maxdepth 4 \( -name "*.sln" -o -name "*.csproj" -o -iname "nuget.config" \) -exec cp --parents "{}" /src \;
 COPY . /src
 WORKDIR /src/Raft.Node
 CMD dotnet watch run --no-launch-profile --non-interactive --no-hotreload

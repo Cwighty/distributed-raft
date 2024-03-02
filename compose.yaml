@@ -1,19 +1,30 @@
 include:
   - ./ops/dev/observability/docker-compose.yml
 
+x-dotnet_sync: &dotnet_sync
+  develop:
+    watch:
+      - action: sync
+        path: ./src/Raft
+        target: ./src/
+        ignore:
+          - ./src/Raft/Raft.Gateway/bin
+          - ./src/Raft/Raft.Gateway/obj
+          - ./src/Raft/Raft.Node/bin
+          - ./src/Raft/Raft.Node/obj
+          - ./src/Raft/Raft.Observability/bin
+          - ./src/Raft/Raft.Observability/obj
+          - ./src/Raft/Raft.Shop/bin
+          - ./src/Raft/Raft.Shop/obj
+          - ./src/Raft/Raft.Shop.Client/bin
+          - ./src/Raft/Raft.Shop.Client/obj
+
 x-node_base: &node_base
   build:
     context: ./src/Raft/
     dockerfile: node.Dockerfile
     target: development
-  develop:
-    watch:
-      - action: sync
-        path: ./src/Raft/Raft.Node
-        target: ./src/Raft.Node
-        ignore:
-          - ./src/Raft/Raft.Node/bin
-          - ./src/Raft/Raft.Node/obj
+  <<: *dotnet_sync
 
 x-node-environment: &node-environment
   ASPNETCORE_ENVIRONMENT: Development
@@ -23,7 +34,7 @@ x-node-environment: &node-environment
 services:
   nginx:
     depends_on:
-      - shop 
+      - shop
     image: nginx:latest
     ports:
       - "3001:80"
@@ -39,16 +50,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       TZ: America/Denver
-    develop:
-      watch:
-        - action: sync
-          path: ./src/Raft/Raft.Shop
-          target: ./src/Raft.Shop
-          ignore:
-            - ./src/Raft/Raft.Shop/Raft.Shop/bin
-            - ./src/Raft/Raft.Shop/Raft.Shop/obj
-            - ./src/Raft/Raft.Shop/Raft.Shop.Client/bin
-            - ./src/Raft/Raft.Shop/Raft.Shop.Client/obj
+    <<: *dotnet_sync
 
   gateway:
     build:
@@ -60,15 +62,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       TZ: America/Denver
-    develop:
-      watch:
-        - action: sync
-          path: ./src/Raft/Raft.Gateway
-          target: ./src/Raft.Gateway
-          ignore:
-            - ./src/Raft/Raft.Gateway/bin
-            - ./src/Raft/Raft.Gateway/obj
-
+    <<: *dotnet_sync
 
   node1:
     <<: *node_base

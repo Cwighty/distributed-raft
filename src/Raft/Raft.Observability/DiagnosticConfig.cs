@@ -12,8 +12,8 @@ public static class DiagnosticConfig
 
     public static Meter ImageRedundancyMeter = new Meter("ChatImageRedundancy");
 
-    public static ObservableGauge<int> ImageRedundancyUploadTotalGuage { get; set; } = default;
-    public static ObservableGauge<int> ImageRedundancyUploadNonRedundantGuage { get; set; } = default;
+    public static ObservableGauge<int>? ImageRedundancyUploadTotalGuage { get; set; } = default;
+    public static ObservableGauge<int>? ImageRedundancyUploadNonRedundantGuage { get; set; } = default;
 
     public static void TrackImageRedundancyUploadTotal(Func<int> func)
     {
@@ -44,7 +44,4 @@ public static class DiagnosticConfig
 
     // ActivitySouce name has to match service name for spans to show up 
     public static ActivitySource ChatApiActivitySource = new ActivitySource("ChatApi");
-    public static ActivitySource ImageProcessingActivitySource = new ActivitySource("ChatImageProcessing");
-    public static ActivitySource ImageRedundancyActivitySource = new ActivitySource("ChatImageRedundancy");
-
 }
