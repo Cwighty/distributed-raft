@@ -1,4 +1,5 @@
 ﻿@page "/"
+@rendermode InteractiveServer
 @inject HttpClient Http
 @using Raft.Data.Models;
 
@@ -7,13 +8,20 @@
 <p>Welcome to your new app.</p>
 <p>@message</p>
 
+<button class="btn btn-primary" @onclick="OnClick">hey</button>
+
 @code {
     private string message = "Hello, world!";
     protected async override Task OnInitializedAsync()
     {
         var response = await Http.GetFromJsonAsync<VersionedValue<string>>("Storage/StrongGet?key=test");
-        Console.WriteLine(response.Value);
-        message = response.Value;
+        message = response?.Value ?? "";
+        StateHasChanged();
+    }
+
+    private void OnClick()
+    {
+        message = "Test";
         StateHasChanged();
     }
 }
