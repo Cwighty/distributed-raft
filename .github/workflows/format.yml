@@ -11,18 +11,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Only run if dotnet changes
-        id: check_changes
-        uses: dorny/paths-filter@v2
-        with:
-          list-files: shell
-          filters: |
-            dotnet:
-              - 'src/Chat/**'
-
       - name: Format
-        if: steps.check_changes.outputs.dotnet == 'true'
         run: |
-          cd src/Chat
-          docker build --no-cache -t chat_format -f Dockerfile .
+          cd src/Raft
+          docker build --no-cache -t raft_format -f format.Dockerfile .
           docker run -i --rm chat_format dotnet format --verify-no-changes --verbosity diagnostic

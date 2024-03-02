@@ -2,9 +2,7 @@ name: Deploy
 
 env:
   DUCKDNSTOKEN: ${{ secrets.DUCKDNSTOKEN }}
-  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-  POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+
 on:
   push:
     branches:
@@ -30,8 +28,4 @@ jobs:
         run: |
           cd ops/prod
           docker compose pull
-          docker stop dc-swag
-          docker rm dc-swag
-          docker compose build
-          docker compose down
-          docker compose up -d
+          docker compose up -d --build
