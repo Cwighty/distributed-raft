@@ -36,11 +36,16 @@ services:
   nginx:
     depends_on:
       - shop
-    image: nginx:latest
+    build:
+      context: ./ops/dev/
+      dockerfile: nginx.Dockerfile
     ports:
       - "3001:80"
-    volumes:
-      - ./ops/dev/nginx.conf:/etc/nginx/conf.d/default.conf
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./ops/dev/nginx.conf
+          target: /etc/nginx/conf.d/default.conf
 
   shop:
     build:
