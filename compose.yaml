@@ -8,6 +8,8 @@ x-dotnet_sync: &dotnet_sync
         path: ./src/Raft
         target: ./src/
         ignore:
+          - ./src/Raft/Raft.Data/bin
+          - ./src/Raft/Raft.Data/obj
           - ./src/Raft/Raft.Gateway/bin
           - ./src/Raft/Raft.Gateway/obj
           - ./src/Raft/Raft.Node/bin

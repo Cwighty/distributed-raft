@@ -1,6 +1,7 @@
 using Raft.Shop.Components;
 using Raft.Observability;
 using Raft.Shop.Client.Pages;
+using Raft.Shop;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +10,11 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
+builder.AddApiOptions();
 builder.AddObservability();
+
+builder.Services.AddHttpClient("GatewayClient", client => client.BaseAddress = new Uri("http://gateway:8080"));
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("GatewayClient"));
 
 var app = builder.Build();
 

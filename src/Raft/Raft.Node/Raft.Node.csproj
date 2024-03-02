@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Raft.Observability\Raft.Observability.csproj" />
+    <ProjectReference Include="..\Raft.Data\Raft.Data.csproj" />
   </ItemGroup>
 
 </Project>
