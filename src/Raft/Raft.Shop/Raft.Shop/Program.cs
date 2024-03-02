@@ -1,7 +1,7 @@
 using Raft.Shop.Components;
 using Raft.Observability;
 using Raft.Shop.Client.Pages;
-using Raft.Shop;
+using Raft.Shop.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +13,7 @@ builder.Services.AddRazorComponents()
 builder.AddApiOptions();
 builder.AddObservability();
 
-builder.Services.AddHttpClient("GatewayClient", client => client.BaseAddress = new Uri("http://gateway:8080"));
+builder.Services.AddHttpClient("GatewayClient", client => client.BaseAddress = new Uri(builder.Configuration.GetSection(nameof(ApiOptions))["GatewayAddress"] ?? throw new InvalidOperationException("Gateway address not found.")));
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("GatewayClient"));
 
 var app = builder.Build();

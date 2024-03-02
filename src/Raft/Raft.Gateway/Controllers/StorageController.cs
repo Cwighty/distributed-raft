@@ -14,22 +14,22 @@ public class StorageController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet(Name = "StrongGet")]
-    public (string value, int version) StrongGet([FromQuery] string key)
+    [HttpGet("StrongGet")]
+    public VersionedValue<string> StrongGet([FromQuery] string key)
     {
         _logger.LogInformation("StrongGet called with key: {key}", key);
         // var leader = FindLeader();
         // return leader.StrongGet(key);
-        return ("value", 1);
+        return new VersionedValue<string> { Version = 1, Value = "value" };
     }
 
     [HttpGet(Name = "EventualGet")]
-    public (string value, int version) EventualGet([FromQuery] string key)
+    public VersionedValue<string> EventualGet([FromQuery] string key)
     {
         _logger.LogInformation("EventualGet called with key: {key}", key);
         // var node = GetRandomNode();
         // return node.EventualGet(key);
-        return ("value", 1);
+        return new VersionedValue<string> { Version = 1, Value = "value" };
     }
 
     [HttpPost(Name = "CompareAndSwap")]

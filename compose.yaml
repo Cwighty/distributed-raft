@@ -56,10 +56,10 @@ services:
       target: development
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_URLS: http://+:3001
       ObservabilityOptions__CollectorUrl: http://collector:4317
       TZ: America/Denver
-    <<: *dotnet_sync
+    <<: *dotnet_sync       
 
   gateway:
     build:

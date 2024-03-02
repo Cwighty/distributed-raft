@@ -1,4 +1,4 @@
-﻿namespace Raft.Shop;
+﻿namespace Raft.Shop.Options;
 
 public class ApiOptions
 {

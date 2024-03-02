@@ -1,4 +1,4 @@
-﻿namespace Raft.Node;
+﻿namespace Raft.Node.Options;
 
 public class ApiOptions
 {

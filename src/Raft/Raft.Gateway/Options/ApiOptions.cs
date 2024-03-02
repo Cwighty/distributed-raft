@@ -1,4 +1,4 @@
-﻿namespace Raft.Gateway;
+﻿namespace Raft.Gateway.Options;
 
 public class ApiOptions
 {
