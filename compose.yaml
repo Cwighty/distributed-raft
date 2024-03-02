@@ -22,7 +22,7 @@ x-dotnet_sync: &dotnet_sync
 x-node_base: &node_base
   build:
     context: ./src/Raft/
-    dockerfile: node.Dockerfile
+    dockerfile: ./Raft.Node/Dockerfile
     target: development
   <<: *dotnet_sync
 
@@ -50,7 +50,7 @@ services:
   shop:
     build:
       context: ./src/Raft/
-      dockerfile: shop.Dockerfile
+      dockerfile: ./Raft.Shop/Dockerfile
       target: development
     environment:
       ASPNETCORE_ENVIRONMENT: Development
@@ -62,7 +62,7 @@ services:
   gateway:
     build:
       context: ./src/Raft/
-      dockerfile: gateway.Dockerfile
+      dockerfile: ./Raft.Gateway/Dockerfile
       target: development
     environment:
       MicroServiceOptions__NodeCount: 3
