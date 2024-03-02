@@ -15,4 +15,4 @@ jobs:
         run: |
           cd src/Raft
           docker build --no-cache -t raft_format -f format.Dockerfile .
-          docker run -i --rm chat_format dotnet format --verify-no-changes --verbosity diagnostic
+          docker run -i --rm raft_format dotnet format --verify-no-changes --verbosity diagnostic
