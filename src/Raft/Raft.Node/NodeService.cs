@@ -9,25 +9,8 @@ enum NodeState
     Candidate,
     Leader
 }
-public interface INodeService
-{
-    Guid Id { get; }
-    Dictionary<string, VersionedValue<string>> Data { get; set; }
-    int CurrentTerm { get; }
-    int CommittedIndex { get; }
-    Guid VotedFor { get; }
-    Guid LeaderId { get; }
-    bool IsLeader { get; }
-    (string value, int version) Get(string key);
-    Task StartElection(int term = 0);
-    bool VoteForCandidate(VoteRequest request);
-    bool VoteForCandidate(Guid candidateId, int theirTerm, long theirCommittedLogIndex);
-    bool AppendEntry(AppendEntryRequest request);
-    bool AppendEntry(string key, string value, long logIndex, int term);
-    bool AppendEntries(AppendEntriesRequest request);
-}
 
-public class NodeService : BackgroundService, INodeService
+public class NodeService : BackgroundService
 {
     private NodeState state = NodeState.Follower;
     private DateTime lastHeartbeatReceived;
@@ -35,12 +18,12 @@ public class NodeService : BackgroundService, INodeService
     private Random random = new Random();
     private List<string> otherNodeAddresses = new List<string>();
 
-    public Guid Id { get; private set; }
+    public int Id { get; private set; }
     public Dictionary<string, VersionedValue<string>> Data { get; set; } = new();
     public int CurrentTerm { get; private set; } = 0;
     public int CommittedIndex { get; private set; }
-    public Guid VotedFor { get; private set; } = Guid.Empty;
-    public Guid LeaderId { get; private set; } = Guid.Empty;
+    public int VotedFor { get; private set; }
+    public int LeaderId { get; private set; }
     public bool IsLeader => state == NodeState.Leader;
 
 
@@ -54,7 +37,7 @@ public class NodeService : BackgroundService, INodeService
         this.logger = logger;
         this.options = options;
 
-        Id = Guid.NewGuid();
+        Id = options.NodeIdentifier; 
         electionTimeout = random.Next(150, 300);
         for (int i = 1; i <= options.NodeCount; i++)
         {
@@ -190,15 +173,15 @@ public class NodeService : BackgroundService, INodeService
         return VoteForCandidate(request.CandidateId, request.Term, request.LastLogIndex);
     }
 
-    public bool VoteForCandidate(Guid candidateId, int theirTerm, long theirCommittedLogIndex)
+    public bool VoteForCandidate(int candidateId, int theirTerm, long theirCommittedLogIndex)
     {
         if (theirTerm < CurrentTerm || theirCommittedLogIndex < CommittedIndex)
         {
-            Log($"Denied vote request from {candidateId} in election cycle {theirTerm}.");
+            Log($"Denied vote request from node {candidateId} in election cycle {theirTerm}.");
             return false;
         }
 
-        if (theirTerm > CurrentTerm || (theirTerm == CurrentTerm && (VotedFor == Guid.Empty || VotedFor == candidateId)))
+        if (theirTerm > CurrentTerm || (theirTerm == CurrentTerm && (VotedFor == 0 || VotedFor == candidateId)))
         {
             CurrentTerm = theirTerm;
             VotedFor = candidateId;
@@ -209,7 +192,7 @@ public class NodeService : BackgroundService, INodeService
         }
         else
         {
-            Log($"Denied vote request from {candidateId} in election cycle {theirTerm}.");
+            Log($"Denied vote request from node {candidateId} in election cycle {theirTerm}.");
             return false;
         }
     }

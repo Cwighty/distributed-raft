@@ -2,7 +2,7 @@ namespace Raft.Data.Models;
 
 public class AppendEntriesRequest
 {
-    public Guid LeaderId { get; set; }
+    public int LeaderId { get; set; }
     public int Term { get; set; }
     public int LeaderCommittedIndex { get; set; }
     public Dictionary<string, VersionedValue<string>> Entries { get; set; } = new();
@@ -10,7 +10,7 @@ public class AppendEntriesRequest
 
 public class AppendEntryRequest
 {
-    public Guid LeaderId { get; set; }
+    public int LeaderId { get; set; }
     public int Term { get; set; }
     public int LeaderCommittedIndex { get; set; }
     public string Key { get; set; } = null!;

@@ -18,7 +18,6 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -28,7 +27,7 @@
         "uid": "loki"
       },
       "gridPos": {
-        "h": 20,
+        "h": 9,
         "w": 8,
         "x": 0,
         "y": 0
@@ -41,7 +40,7 @@
         "showCommonLabels": false,
         "showLabels": false,
         "showTime": false,
-        "sortOrder": "Descending",
+        "sortOrder": "Ascending",
         "wrapLogMessage": false
       },
       "targets": [
@@ -50,8 +49,8 @@
             "type": "loki",
             "uid": "loki"
           },
-          "editorMode": "builder",
-          "expr": "{job=\"Node1\"} | json | line_format \"{{.body}}\"\r\n",
+          "editorMode": "code",
+          "expr": "{job=\"Node1\"} |= `NodeService` | json | line_format \"{{.body}}\"\r\n",
           "key": "Q-69037265-3793-4631-acbb-5a0303e56efd-0",
           "queryType": "range",
           "refId": "A"
@@ -67,7 +66,7 @@
         "uid": "loki"
       },
       "gridPos": {
-        "h": 20,
+        "h": 9,
         "w": 8,
         "x": 8,
         "y": 0
@@ -80,7 +79,7 @@
         "showCommonLabels": false,
         "showLabels": false,
         "showTime": false,
-        "sortOrder": "Descending",
+        "sortOrder": "Ascending",
         "wrapLogMessage": false
       },
       "targets": [
@@ -90,7 +89,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "{job=\"Node2\"} | json | line_format \"{{.body}}\"\r\n",
+          "expr": "{job=\"Node2\"} |= `NodeService` | json | line_format \"{{.body}}\"\r\n\r\n",
           "key": "Q-69037265-3793-4631-acbb-5a0303e56efd-0",
           "queryType": "range",
           "refId": "A"
@@ -106,7 +105,7 @@
         "uid": "loki"
       },
       "gridPos": {
-        "h": 20,
+        "h": 9,
         "w": 8,
         "x": 16,
         "y": 0
@@ -119,7 +118,7 @@
         "showCommonLabels": false,
         "showLabels": false,
         "showTime": false,
-        "sortOrder": "Descending",
+        "sortOrder": "Ascending",
         "wrapLogMessage": false
       },
       "targets": [
@@ -129,7 +128,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "{job=\"Node3\"} | json | line_format \"{{.body}}\"\r\n",
+          "expr": "{job=\"Node3\"} |= `NodeService` | json | line_format \"{{.body}}\"\r\n",
           "key": "Q-69037265-3793-4631-acbb-5a0303e56efd-0",
           "queryType": "range",
           "refId": "A"
@@ -152,8 +151,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "New dashboard",
+  "title": "Raft Election Logs",
   "uid": "d5155a4e-3253-463c-adb1-1782864b3945",
-  "version": 5,
+  "version": 3,
   "weekStart": ""
 }
