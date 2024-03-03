@@ -1,13 +1,21 @@
+using Raft.Node;
+using Raft.Node.Options;
 using Raft.Observability;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.AddObservability();
+builder.AddApiOptions();
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddHttpClient();
+
+// builder.Services.AddHostedService<NodeService>();
 
 var app = builder.Build();
 

@@ -14,7 +14,7 @@ public class StorageController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet(Name = "StrongGet")]
+    [HttpGet("StrongGet")]
     public (string value, int version) StrongGet([FromQuery] string key)
     {
         _logger.LogInformation("StrongGet called with key: {key}", key);
@@ -43,7 +43,7 @@ public class StorageController : ControllerBase
         return ("value", 1);
     }
 
-    [HttpGet(Name = "EventualGet")]
+    [HttpGet("EventualGet")]
     public (string value, int version) EventualGet([FromQuery] string key)
     {
         _logger.LogInformation("EventualGet called with key: {key}", key);
@@ -56,7 +56,7 @@ public class StorageController : ControllerBase
         return ("value", 1);
     }
 
-    [HttpPost(Name = "CompareAndSwap")]
+    [HttpPost("CompareAndSwap")]
     public void CompareAndSwap(CompareAndSwapRequest request)
     {
         // if (!IsLeader)
