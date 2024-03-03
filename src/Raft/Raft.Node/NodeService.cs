@@ -211,7 +211,7 @@ public class NodeService : BackgroundService
 
     private void Log(string message)
     {
-        if (DateTime.UtcNow - lastMessageClearTime >= TimeSpan.FromSeconds(5))
+        if (DateTime.UtcNow - lastMessageClearTime >= TimeSpan.FromSeconds(options.LogMessageIntervalSeconds))
         {
             sentMessages.Clear();
             lastMessageClearTime = DateTime.UtcNow;
@@ -304,7 +304,8 @@ public class NodeService : BackgroundService
                 writer.WriteLine(value);
             }
         }
-        Console.WriteLine($"Logged entry {key} {value} {index} {leaderTerm}");
+
+        Log($"Log entry added | Index: {index} | Term: {leaderTerm} | Key: {key} | Value: {value}");
     }
 
     public bool AppendEntries(AppendEntriesRequest request)
@@ -366,6 +367,7 @@ public class NodeService : BackgroundService
 
     public async Task<VersionedValue<string>> StrongGet(string key)
     {
+        Log($"StrongGet called with key: {key}");
         if (!IsLeader)
         {
             throw new Exception("Not the leader.");
@@ -404,6 +406,8 @@ public class NodeService : BackgroundService
 
     public VersionedValue<string> EventualGet(string key)
     {
+        Log($"EventualGet called with key: {key}");
+
         if (Data.ContainsKey(key))
         {
             return Data[key];

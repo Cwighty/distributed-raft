@@ -7,6 +7,7 @@ public class ApiOptions
     public int NodeServicePort { get; set; } = 8080;
     public int NodeCount { get; set; } = 3;
     public string EntryLogPath { get; set; } = "/entrylogs";
+    public double LogMessageIntervalSeconds { get; set; } = 10;
 }
 
 public static class ApiOptionsExtensions
