@@ -9,8 +9,25 @@ enum NodeState
     Candidate,
     Leader
 }
+public interface INodeService
+{
+    Guid Id { get; }
+    Dictionary<string, VersionedValue<string>> Data { get; set; }
+    int CurrentTerm { get; }
+    int CommittedIndex { get; }
+    Guid VotedFor { get; }
+    Guid LeaderId { get; }
+    bool IsLeader { get; }
+    (string value, int version) Get(string key);
+    Task StartElection(int term = 0);
+    bool VoteForCandidate(VoteRequest request);
+    bool VoteForCandidate(Guid candidateId, int theirTerm, long theirCommittedLogIndex);
+    bool AppendEntry(AppendEntryRequest request);
+    bool AppendEntry(string key, string value, long logIndex, int term);
+    bool AppendEntries(AppendEntriesRequest request);
+}
 
-public class NodeService : BackgroundService
+public class NodeService : BackgroundService, INodeService
 {
     private NodeState state = NodeState.Follower;
     private DateTime lastHeartbeatReceived;
@@ -64,9 +81,9 @@ public class NodeService : BackgroundService
             CommittedIndex = logFiles.Count();
         }
 
+        lastHeartbeatReceived = DateTime.UtcNow;
         while (!stoppingToken.IsCancellationRequested)
         {
-            lastHeartbeatReceived = DateTime.UtcNow;
             if (state == NodeState.Leader)
             {
                 Task.Delay(100).Wait();
@@ -75,6 +92,7 @@ public class NodeService : BackgroundService
             }
             else if (HasElectionTimedOut())
             {
+                Console.WriteLine("Election timed out.");
                 Log("Election timed out.");
                 await StartElection();
             }
@@ -113,8 +131,9 @@ public class NodeService : BackgroundService
             {
                 response = await RequestVoteAsync(nodeAddress, CurrentTerm, myLatestCommittedLogIndex);
             }
-            catch
+            catch (Exception ex)
             {
+                Log($"Vote request failed at {nodeAddress}. {ex.Message}");
             }
 
 
@@ -197,20 +216,17 @@ public class NodeService : BackgroundService
 
     private bool HasElectionTimedOut()
     {
-        var timeSinceLastHeartbeat = DateTime.UtcNow - lastHeartbeatReceived;
-        Console.WriteLine($"Time since last heartbeat: {timeSinceLastHeartbeat.TotalMilliseconds}ms");
         return DateTime.UtcNow - lastHeartbeatReceived > TimeSpan.FromMilliseconds(electionTimeout);
     }
 
     private void ResetElectionTimeout()
     {
-        electionTimeout += random.Next(100, 350);
+        electionTimeout = random.Next(2000, 3500);
         lastHeartbeatReceived = DateTime.UtcNow;
     }
 
     private void Log(string message)
     {
-        Console.WriteLine(message);
         logger.LogInformation($"{message}");
     }
 

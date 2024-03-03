@@ -15,7 +15,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddHttpClient();
 
-// builder.Services.AddHostedService<NodeService>();
+builder.Services.AddSingleton<NodeService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<NodeService>());
 
 var app = builder.Build();
 
