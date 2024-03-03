@@ -37,7 +37,7 @@ public class NodeService : BackgroundService
         this.logger = logger;
         this.options = options;
 
-        Id = options.NodeIdentifier; 
+        Id = options.NodeIdentifier;
         electionTimeout = random.Next(150, 300);
         for (int i = 1; i <= options.NodeCount; i++)
         {
@@ -123,7 +123,7 @@ public class NodeService : BackgroundService
             if (response != null && response.VoteGranted)
             {
                 votesReceived++;
-                Log($"Received vote from {response.VoterId} {votesReceived}/{options.NodeCount} votes received.");
+                Log($"Received vote from node #{response.VoterId} {votesReceived}/{options.NodeCount} votes received.");
             }
             else
             {
@@ -187,7 +187,7 @@ public class NodeService : BackgroundService
             VotedFor = candidateId;
             state = NodeState.Follower;
             ResetElectionTimeout();
-            Log($"Voted for {candidateId} in election cycle {theirTerm}.");
+            Log($"Voted for node {candidateId} in election term {theirTerm}.");
             return true;
         }
         else
@@ -208,9 +208,21 @@ public class NodeService : BackgroundService
         lastHeartbeatReceived = DateTime.UtcNow;
     }
 
+    private DateTime lastMessageClearTime = DateTime.MinValue;
+    private HashSet<string> sentMessages = new HashSet<string>();
+
     private void Log(string message)
     {
-        logger.LogInformation($"{message}");
+        if (DateTime.UtcNow - lastMessageClearTime >= TimeSpan.FromSeconds(5))
+        {
+            sentMessages.Clear();
+            lastMessageClearTime = DateTime.UtcNow;
+        }
+        if (!sentMessages.Contains(message))
+        {
+            logger.LogInformation($"{message}");
+            sentMessages.Add(message);
+        }
     }
 
     private async void SendHeartbeats()
@@ -235,7 +247,7 @@ public class NodeService : BackgroundService
 
         if (response.IsSuccessStatusCode)
         {
-            Log("Heartbeat sent.");
+            Log($"Heartbeat sent | Term: {currentTerm} | Committed: {committedIndex} | Occupation: {state}" );
         }
         else
         {
@@ -295,10 +307,10 @@ public class NodeService : BackgroundService
         if (request.Term >= CurrentTerm)
         {
             ResetElectionTimeout();
-            Log($"Received heartbeat from node {request.LeaderId} for election term {request.Term}.");
             CurrentTerm = request.Term;
             state = NodeState.Follower;
             LeaderId = request.LeaderId;
+            Log($"Heartbeat received | Term: {CurrentTerm} | Committed: {CommittedIndex} | Following: {LeaderId}");
 
             foreach (var entry in request.Entries)
             {
