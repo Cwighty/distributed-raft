@@ -1,69 +1,99 @@
 using Microsoft.AspNetCore.Mvc;
 using Raft.Data.Models;
+using Raft.Gateway.Options;
 
 namespace Raft.Gateway.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("gateway/[controller]")]
 public class StorageController : ControllerBase
 {
     private readonly ILogger<StorageController> _logger;
+    private readonly ApiOptions options;
+    private readonly HttpClient client;
+    private List<string> nodeAddresses = new List<string>();
 
-    public StorageController(ILogger<StorageController> logger)
+    public StorageController(ILogger<StorageController> logger, ApiOptions options, HttpClient client)
     {
         _logger = logger;
+        this.options = options;
+        this.client = client;
+        InitializeNodeAddresses(options);
+    }
+
+    private void InitializeNodeAddresses(ApiOptions options)
+    {
+        nodeAddresses = [];
+        for (var i = 1; i <= options.NodeCount; i++)
+        {
+            nodeAddresses.Add($"http://{options.NodeServiceName}{i}:{options.NodeServicePort}");
+        }
     }
 
     [HttpGet("StrongGet")]
-    public VersionedValue<string> StrongGet([FromQuery] string key)
+    public async Task<ActionResult<VersionedValue<string>>> StrongGet([FromQuery] string key)
     {
         _logger.LogInformation("StrongGet called with key: {key}", key);
-        // var leader = FindLeader();
-        // return leader.StrongGet(key);
-        return new VersionedValue<string> { Version = 1, Value = "value" };
+        var leaderAddress = FindLeaderAddress();
+        var value = await client.GetFromJsonAsync<VersionedValue<string>>($"{leaderAddress}/Storage/StrongGet?key={key}");
+        if (value == null)
+        {
+            throw new Exception("Value not found");
+        }
+        return value;
     }
 
-    [HttpGet(Name = "EventualGet")]
-    public VersionedValue<string> EventualGet([FromQuery] string key)
+    [HttpGet("EventualGet")]
+    public async Task<ActionResult<VersionedValue<string>>> EventualGet([FromQuery] string key)
     {
         _logger.LogInformation("EventualGet called with key: {key}", key);
-        // var node = GetRandomNode();
-        // return node.EventualGet(key);
-        return new VersionedValue<string> { Version = 1, Value = "value" };
+        var leaderAddress = FindLeaderAddress();
+        var value = await client.GetFromJsonAsync<VersionedValue<string>>($"{leaderAddress}/Storage/EventualGet?key={key}");
+        if (value == null)
+        {
+            throw new Exception("Value not found");
+        }
+        return value;
     }
 
-    [HttpPost(Name = "CompareAndSwap")]
-    public void CompareAndSwap(CompareAndSwapRequest request)
+    [HttpPost("CompareAndSwap")]
+    public async Task<ActionResult> CompareAndSwap(CompareAndSwapRequest request)
     {
         _logger.LogInformation("CompareAndSwap called with key: {key}, oldValue: {oldValue}, newValue: {newValue}", request.Key, request.OldValue, request.NewValue);
-        // var leader = FindLeader();
-        // leader.CompareAndSwap(key, oldValue, newValue);
+        var leaderAddress = FindLeaderAddress();
+        var response = await client.PostAsJsonAsync($"{leaderAddress}/Storage/CompareAndSwap", request);
+        response.EnsureSuccessStatusCode();
+        return Ok();
     }
 
-    // private Node FindLeader()
-    // {
-    //     var node = GetRandomNode();
+    private string FindLeaderAddress()
+    {
+        var address = GetRandomNodeAddress();
 
-    //     if (node.IsLeader)
-    //     {
-    //         return node;
-    //     }
-    //     else
-    //     {
-    //         if (node.LeaderId == Guid.Empty)
-    //         {
-    //             while (node.LeaderId == Guid.Empty) // wait for leader to be elected
-    //             {
-    //                 node = GetRandomNode();
-    //             }
-    //         }
-    //         return nodeDict[node.LeaderId];
-    //     }
-    // }
+        var leaderId = 0;
+        while (leaderId == 0)
+        {
+            leaderId = GetLeaderId(address).Result;
+            if (leaderId == 0)
+            {
+                address = GetRandomNodeAddress();
+            }
+        }
 
-    // private Node GetRandomNode()
-    //     {
-    //         var random = new Random();
-    //         return nodeDict.ElementAt(random.Next(nodeDict.Count)).Value;
-    //     }
+        return nodeAddresses.First(a => a.Contains(leaderId.ToString()));
+    }
+
+    private async Task<int> GetLeaderId(string address)
+    {
+        var response = await client.GetAsync($"{address}/Raft/who-is-leader");
+        response.EnsureSuccessStatusCode();
+        var leaderId = await response.Content.ReadAsStringAsync();
+        return int.Parse(leaderId);
+    }
+
+    private string GetRandomNodeAddress()
+    {
+        var random = new Random();
+        return nodeAddresses[random.Next(0, nodeAddresses.Count)];
+    }
 }

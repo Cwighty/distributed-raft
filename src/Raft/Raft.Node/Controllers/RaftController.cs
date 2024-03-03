@@ -26,18 +26,33 @@ public class RaftController : ControllerBase
     [HttpPost("append-entry")]
     public IActionResult AppendEntry(AppendEntryRequest request)
     {
-        node.AppendEntry(request);
-        return Ok();
+        if (node.AppendEntry(request))
+            return Ok();
+        return BadRequest("Failed to append entry.");
     }
 
     [HttpPost("request-vote")]
     public ActionResult<VoteResponse> RequestVote(VoteRequest request)
     {
-        var votedYes = node.VoteForCandidate(request); 
+        var votedYes = node.VoteForCandidate(request);
         return new VoteResponse
         {
             VoterId = node.Id,
             VoteGranted = votedYes
         };
+    }
+
+    [HttpGet("who-is-leader")]
+    public ActionResult<int> WhoIsLeader()
+    {
+        if (node.LeaderId == 0)
+        {
+            return NotFound();
+        }
+        if (node.IsLeader)
+        {
+            return node.Id;
+        }
+        return node.LeaderId;
     }
 }

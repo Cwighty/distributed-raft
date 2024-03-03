@@ -247,7 +247,7 @@ public class NodeService : BackgroundService
 
             if (response.IsSuccessStatusCode)
             {
-                Log($"Heartbeat sent | Term: {currentTerm} | Committed: {committedIndex} | Occupation: {state}" );
+                Log($"Heartbeat sent | Term: {currentTerm} | Committed: {committedIndex} | Occupation: {state}");
             }
             else
             {
@@ -362,5 +362,116 @@ public class NodeService : BackgroundService
             }
             CommittedIndex = committedIndex;
         }
+    }
+
+    public async Task<VersionedValue<string>> StrongGet(string key)
+    {
+        if (!IsLeader)
+        {
+            throw new Exception("Not the leader.");
+        }
+        var confirmLeaderCount = 1;
+        foreach (var nodeAddr in otherNodeAddresses)
+        {
+            if (await ConfirmLeader(nodeAddr))
+            {
+                confirmLeaderCount++;
+            }
+            if (confirmLeaderCount > options.NodeCount / 2)
+            {
+                if (Data.ContainsKey(key))
+                {
+                    return Data[key];
+                }
+                else
+                {
+                    throw new Exception("Value not found.");
+                }
+            }
+        }
+        throw new Exception("Not the leader.");
+    }
+
+    public async Task<bool> ConfirmLeader(string addr)
+    {
+        var leaderId = await client.GetFromJsonAsync<int>($"{addr}/raft/who-is-leader");
+        if (leaderId == Id)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public VersionedValue<string> EventualGet(string key)
+    {
+        if (Data.ContainsKey(key))
+        {
+            return Data[key];
+        }
+
+        return new VersionedValue<string> { Value = String.Empty, Version = 0 };
+    }
+
+    public async Task CompareAndSwap(string key, string? oldValue, string newValue)
+    {
+        if (!IsLeader)
+        {
+            throw new Exception("Not the leader.");
+        }
+
+        var newIndex = 1;
+        if (Directory.Exists(options.EntryLogPath))
+        {
+            newIndex = new DirectoryInfo(options.EntryLogPath).GetFiles().Length + 1;
+        }
+        if (Data.ContainsKey(key) && oldValue != Data[key].Value)
+            throw new Exception("Value does not match.");
+
+        LogEntry(key, newValue, newIndex, CurrentTerm);
+        if (await BroadcastReplication(key, newValue, newIndex))
+        {
+            // if majority of nodes have replicated the log, update the data
+            Data[key] = new VersionedValue<string> { Value = newValue, Version = newIndex };
+            CommittedIndex = newIndex;
+            return;
+        }
+        throw new Exception("Could not replicate to majority of nodes.");
+    }
+
+    private async Task<bool> BroadcastReplication(string key, string value, int index)
+    {
+        var confirmReplicationCount = 1;
+        foreach (var nodeAddr in otherNodeAddresses)
+        {
+            if (await RequestAppendEntry(nodeAddr, CurrentTerm, key, value, index))
+            {
+                confirmReplicationCount++;
+            }
+        }
+        if (confirmReplicationCount > options.NodeCount / 2)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private async Task<bool> RequestAppendEntry(string addr, int term, string key, string value, int index)
+    {
+        var request = new AppendEntryRequest
+        {
+            Term = term,
+            Key = key,
+            Value = value,
+            Version = index
+        };
+
+        var response = await client.PostAsJsonAsync($"{addr}/raft/append-entry", request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            return true;
+        }
+
+        return false;
     }
 }

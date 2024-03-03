@@ -71,7 +71,8 @@ services:
       dockerfile: ./Raft.Gateway/Dockerfile
       target: development
     environment:
-      MicroServiceOptions__NodeCount: 3
+      ApiOptions__NodeCount: 3
+      ApiOptions__NodeServiceName: node
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       ObservabilityOptions__CollectorUrl: http://collector:4317
