@@ -70,12 +70,10 @@ public class NodeService : BackgroundService
             if (state == NodeState.Leader)
             {
                 Task.Delay(100).Wait();
-                Console.WriteLine("Tick");
                 SendHeartbeats();
             }
             else if (HasElectionTimedOut())
             {
-                Console.WriteLine("Election timed out.");
                 Log("Election timed out.");
                 await StartElection();
             }
@@ -204,7 +202,7 @@ public class NodeService : BackgroundService
 
     private void ResetElectionTimeout()
     {
-        electionTimeout = random.Next(2000, 3500);
+        electionTimeout = random.Next(1000, 3500);
         lastHeartbeatReceived = DateTime.UtcNow;
     }
 
@@ -243,15 +241,22 @@ public class NodeService : BackgroundService
             Entries = data
         };
 
-        var response = await client.PostAsJsonAsync($"{nodeAddress}/raft/append-entries", request);
+        try
+        {
+            var response = await client.PostAsJsonAsync($"{nodeAddress}/raft/append-entries", request);
 
-        if (response.IsSuccessStatusCode)
-        {
-            Log($"Heartbeat sent | Term: {currentTerm} | Committed: {committedIndex} | Occupation: {state}" );
+            if (response.IsSuccessStatusCode)
+            {
+                Log($"Heartbeat sent | Term: {currentTerm} | Committed: {committedIndex} | Occupation: {state}" );
+            }
+            else
+            {
+                Log("Heartbeat failed.");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Log("Heartbeat failed.");
+            Log($"Heartbeat failed. {ex.Message}");
         }
     }
 
