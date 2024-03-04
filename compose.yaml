@@ -7,19 +7,6 @@ x-dotnet_sync: &dotnet_sync
       - action: sync
         path: ./src/Raft
         target: ./src/
-        ignore:
-          - ./src/Raft/Raft.Data/bin
-          - ./src/Raft/Raft.Data/obj
-          - ./src/Raft/Raft.Gateway/bin
-          - ./src/Raft/Raft.Gateway/obj
-          - ./src/Raft/Raft.Node/bin
-          - ./src/Raft/Raft.Node/obj
-          - ./src/Raft/Raft.Observability/bin
-          - ./src/Raft/Raft.Observability/obj
-          - ./src/Raft/Raft.Shop/Raft.Shop/bin
-          - ./src/Raft/Raft.Shop/Raft.Shop/obj
-          - ./src/Raft/Raft.Shop/Raft.Shop.Client/bin
-          - ./src/Raft/Raft.Shop/Raft.Shop.Client/obj
 
 x-node_base: &node_base
   build:
