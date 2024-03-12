@@ -1,6 +1,6 @@
-using Raft.Shop.Components;
-using Raft.Observability;
+﻿using Raft.Observability;
 using Raft.Shop.Client.Pages;
+using Raft.Shop.Components;
 using Raft.Shop.Options;
 
 var builder = WebApplication.CreateBuilder(args);

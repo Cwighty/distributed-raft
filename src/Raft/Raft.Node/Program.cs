@@ -1,4 +1,4 @@
-using Raft.Node;
+﻿using Raft.Node;
 using Raft.Node.Options;
 using Raft.Observability;
 

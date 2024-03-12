@@ -1,4 +1,4 @@
-namespace Raft.Data.Models;
+﻿namespace Raft.Data.Models;
 
 public class AppendEntriesRequest
 {
