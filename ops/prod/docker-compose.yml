@@ -14,6 +14,8 @@ x-node-environment: &node-environment
   ObservabilityOptions__CollectorUrl: http://collector:4317
   MicroServiceOptions__NodeCount: 3
   MicroServiceOptions__NodeServiceName: node 
+  ApiOptions__NodeServicePort: 8080
+  ApiOptions__LogMessageIntervalSeconds: 600
   TZ: America/Denver
 
 services:
