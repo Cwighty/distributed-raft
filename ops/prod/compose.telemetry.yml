@@ -1,6 +1,6 @@
 services:
   collector:
-    container_name: dc-collector
+    container_name: w-collector
     image: otel/opentelemetry-collector-contrib:latest
     command: ["--config=/etc/otel-collector.yaml"]
     volumes:
@@ -19,7 +19,7 @@ services:
       - loki
 
   tempo:
-    container_name: dc-tempo
+    container_name: w-tempo
     image: grafana/tempo:latest
     command: ["-config.file=/etc/tempo.yaml"]
     # ports:
@@ -27,10 +27,10 @@ services:
     # - "4317" # otlp grpc
     volumes:
       - ../shared/config-files/tempo.yaml:/etc/tempo.yaml
-      - dc-tempo-data:/tmp/tempo
+      - w-tempo-data:/tmp/tempo
 
   prometheus:
-    container_name: dc-prometheus
+    container_name: w-prometheus
     image: prom/prometheus:latest
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
@@ -43,17 +43,17 @@ services:
       - config.file=/etc/prometheus/prometheus.yml
     volumes:
       - ../shared/config-files/prometheus.yaml:/etc/prometheus/prometheus.yml
-      - dc-prometheus-data:/prometheus
+      - w-prometheus-data:/prometheus
 
   loki:
-    container_name: dc-loki
+    container_name: w-loki
     image: grafana/loki:latest
     command: ["-config.file=/etc/loki/local-config.yaml"]
     volumes:
-      - dc-loki-data:/loki
+      - w-loki-data:/loki
 
   grafana:
-    container_name: dc-grafana
+    container_name: w-grafana
     image: grafana/grafana:latest
     # ports:
     #   - "3000:3000"
@@ -69,7 +69,7 @@ services:
       - collector
 
 volumes:
-  dc-loki-data:
-  dc-tempo-data:
-  dc-prometheus-data:
-  dc-postgres-data:
+  w-loki-data:
+  w-tempo-data:
+  w-prometheus-data:
+  w-postgres-data:
