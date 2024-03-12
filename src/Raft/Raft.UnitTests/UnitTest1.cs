@@ -1,4 +1,4 @@
-namespace Raft.UnitTests;
+﻿namespace Raft.UnitTests;
 
 public class Tests
 {
