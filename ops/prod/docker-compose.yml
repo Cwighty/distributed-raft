@@ -6,7 +6,7 @@ include:
 x-node_base: &node_base
   build:
     context: ../../src/Raft/
-    dockerfile: node.Dockerfile
+    dockerfile: ./Raft.Node/Dockerfile
     target: final
 
 x-node-environment: &node-environment
@@ -41,7 +41,7 @@ services:
     container_name: cd-shop
     build:
       context: ../../src/Raft/
-      dockerfile: shop.Dockerfile
+      dockerfile: ./Raft.Shop/Dockerfile 
       target: final
     environment:
       ASPNETCORE_URLS: http://+:8080
@@ -52,7 +52,7 @@ services:
     container_name: cd-gateway
     build:
       context: ../../src/Raft/
-      dockerfile: gateway.Dockerfile
+      dockerfile: ./Raft.Gateway/Dockerfile
       target: final
     environment:
       MicroServiceOptions__NodeCount: 3
