@@ -28,6 +28,7 @@ jobs:
         run: |
           cd ops/prod
           docker compose pull
+          docker compose down
           docker compose --profile manager up -d --build
 
   deploy-other-node:
