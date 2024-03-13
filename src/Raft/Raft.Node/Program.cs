@@ -1,4 +1,6 @@
-﻿using Raft.Node;
+﻿using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Http;
+using Raft.Node;
 using Raft.Node.Options;
 using Raft.Observability;
 
@@ -14,7 +16,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddHttpClient();
-
+if (builder.Environment.IsProduction())
+{
+    // remove all http client request logging
+    builder.Services.RemoveAll<IHttpMessageHandlerBuilderFilter>();
+}
 builder.Services.AddSingleton<NodeService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<NodeService>());
 
