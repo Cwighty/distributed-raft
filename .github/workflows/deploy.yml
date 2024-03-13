@@ -19,7 +19,7 @@ jobs:
 
   deploy-application:
     needs: tests
-    runs-on: [alex-office5]
+    runs-on: [self-hosted, alex-office5]
     steps:
       - name: checkout repo
         uses: actions/checkout@v3
@@ -32,7 +32,7 @@ jobs:
 
   deploy-other-node:
     needs: deploy-application
-    runs-on: [alex-office4]
+    runs-on: [self-hosted, alex-office4]
     steps:
       - name: checkout repo
         uses: actions/checkout@v3
