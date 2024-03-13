@@ -8,6 +8,8 @@ x-node_base: &node_base
     context: ../../src/Raft/
     dockerfile: ./Raft.Node/Dockerfile
     target: final
+  networks:
+    - w-overlay
 
 x-node-environment: &node-environment
   ASPNETCORE_URLS: http://+:8080
@@ -38,6 +40,10 @@ services:
     ports:
       - 0.0.0.0:1234:443
     restart: unless-stopped
+    profiles:
+      - manager
+    networks:
+      - w-overlay
 
   shop:
     container_name: w-shop
@@ -49,6 +55,10 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ObservabilityOptions__CollectorUrl: http://collector:4317
       TZ: America/Denver
+    profiles:
+      - manager
+    networks:
+      - w-overlay
 
   gateway:
     container_name: w-gateway
@@ -61,6 +71,10 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ObservabilityOptions__CollectorUrl: http://collector:4317
       TZ: America/Denver
+    profiles:
+      - manager
+    networks:
+      - w-overlay
 
   node1:
     container_name: w-node1
@@ -69,6 +83,8 @@ services:
       <<: *node-environment
       MicroServiceOptions__Identifier: 1
       ObservabilityOptions__ServiceName: Node1
+    profiles:
+      - manager
 
   node2:
     container_name: w-node2
@@ -77,6 +93,8 @@ services:
       <<: *node-environment
       MicroServiceOptions__Identifier: 2
       ObservabilityOptions__ServiceName: Node2
+    profiles:
+      - manager
 
   node3:
     container_name: w-node3
@@ -85,3 +103,8 @@ services:
       <<: *node-environment
       MicroServiceOptions__Identifier: 3
       ObservabilityOptions__ServiceName: Node3
+    profiles:
+      - worker
+
+
+
