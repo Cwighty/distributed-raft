@@ -5,19 +5,7 @@ on:
   workflow_call:
 
 jobs:
-  unit-test:
-    runs-on: [self-hosted]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Restore dependencies and run tests
-        run: |
-          cd src/Chat
-          docker build -t chat_tests -f Dockerfile .
-          docker run -i --rm chat_tests /bin/bash -c "cd Chat.UnitTests; dotnet test"
-
-  integration-test:
+  tests:
     runs-on: [self-hosted]
     steps:
       - name: Checkout code
@@ -30,5 +18,5 @@ jobs:
 
       - name: Restore dependencies and run tests
         run: |
-          cd src/Chat/Chat.IntegrationTests
+          cd src/Raft
           dotnet test

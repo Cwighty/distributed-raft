@@ -1,4 +1,4 @@
-using Raft.Gateway.Options;
+﻿using Raft.Gateway.Options;
 using Raft.Observability;
 
 var builder = WebApplication.CreateBuilder(args);

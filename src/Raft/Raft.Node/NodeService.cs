@@ -1,4 +1,4 @@
-using Raft.Data.Models;
+﻿using Raft.Data.Models;
 using Raft.Node.Options;
 
 namespace Raft.Node;
