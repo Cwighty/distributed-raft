@@ -117,4 +117,5 @@ networks:
     attachable: true
   w-overlay-worker:
     name: w-overlay
+    driver: overlay
     external: true
