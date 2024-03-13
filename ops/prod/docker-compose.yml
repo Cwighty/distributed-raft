@@ -40,7 +40,8 @@ services:
     restart: unless-stopped
     profiles:
       - manager
-
+    networks:
+      - w-overlay
 
   shop:
     container_name: w-shop
@@ -54,7 +55,8 @@ services:
       TZ: America/Denver
     profiles:
       - manager
-
+    networks:
+      - w-overlay
 
   gateway:
     container_name: w-gateway
@@ -69,7 +71,8 @@ services:
       TZ: America/Denver
     profiles:
       - manager
-
+    networks:
+      - w-overlay
 
   node1:
     container_name: w-node1
@@ -80,7 +83,8 @@ services:
       ObservabilityOptions__ServiceName: Node1
     profiles:
       - manager
-
+    networks:
+      - w-overlay
 
   node2:
     container_name: w-node2
@@ -91,7 +95,8 @@ services:
       ObservabilityOptions__ServiceName: Node2
     profiles:
       - manager
-
+    networks:
+      - w-overlay
 
   node3:
     container_name: w-node3
@@ -106,7 +111,7 @@ services:
       - w-overlay-worker
 
 networks:
-  default:
+  w-overlay:
     name: w-overlay
     driver: overlay
     attachable: true
