@@ -2,14 +2,13 @@ version: "3.9"
 
 include:
   - compose.telemetry.yml
+  - compose.nodebase.yml
 
 x-node_base: &node_base
   build:
     context: ../../src/Raft/
     dockerfile: ./Raft.Node/Dockerfile
     target: final
-  networks:
-    - w-overlay
 
 x-node-environment: &node-environment
   ASPNETCORE_URLS: http://+:8080
@@ -85,6 +84,8 @@ services:
       ObservabilityOptions__ServiceName: Node1
     profiles:
       - manager
+    networks:
+      - w-overlay
 
   node2:
     container_name: w-node2
@@ -95,6 +96,8 @@ services:
       ObservabilityOptions__ServiceName: Node2
     profiles:
       - manager
+    networks:
+      - w-overlay
 
   node3:
     container_name: w-node3
@@ -105,8 +108,13 @@ services:
       ObservabilityOptions__ServiceName: Node3
     profiles:
       - worker
+    networks:
+      - w-overlay-worker
 
 networks:
   w-overlay:
     driver: overlay
     attachable: true
+  w-overlay-worker:
+    name: w-overlay
+    external: true
