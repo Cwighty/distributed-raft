@@ -28,7 +28,7 @@ jobs:
         run: |
           cd ops/prod
           docker compose pull
-          docker compose up -d --build --profile manager
+          docker compose --profile manager up -d --build
 
   deploy-other-node:
     needs: deploy-application
@@ -41,4 +41,4 @@ jobs:
         run: |
           cd ops/prod
           docker compose pull
-          docker compose up -d --build --profile worker
+          docker compose --profile worker up -d --build 
