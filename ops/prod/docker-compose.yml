@@ -15,7 +15,7 @@ x-node-environment: &node-environment
   ASPNETCORE_URLS: http://+:8080
   ObservabilityOptions__CollectorUrl: http://collector:4317
   MicroServiceOptions__NodeCount: 3
-  MicroServiceOptions__NodeServiceName: node 
+  MicroServiceOptions__NodeServiceName: node
   ApiOptions__NodeServicePort: 8080
   ApiOptions__LogMessageIntervalSeconds: 600
   TZ: America/Denver
@@ -49,7 +49,7 @@ services:
     container_name: w-shop
     build:
       context: ../../src/Raft/
-      dockerfile: ./Raft.Shop/Dockerfile 
+      dockerfile: ./Raft.Shop/Dockerfile
       target: final
     environment:
       ASPNETCORE_URLS: http://+:8080
@@ -106,5 +106,7 @@ services:
     profiles:
       - worker
 
-
-
+networks:
+  w-overlay:
+    driver: overlay
+    attachable: true
