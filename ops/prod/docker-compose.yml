@@ -112,6 +112,7 @@ services:
 
 networks:
   w-overlay:
+    name: w-overlay
     driver: overlay
     attachable: true
   w-overlay-worker:
