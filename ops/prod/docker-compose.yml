@@ -111,7 +111,7 @@ services:
       - w-overlay-worker
 
 networks:
-  w-overlay:
+  default:
     name: w-overlay
     driver: overlay
     attachable: true
