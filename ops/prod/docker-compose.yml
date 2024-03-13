@@ -2,7 +2,6 @@ version: "3.9"
 
 include:
   - compose.telemetry.yml
-  - compose.nodebase.yml
 
 x-node_base: &node_base
   build:
