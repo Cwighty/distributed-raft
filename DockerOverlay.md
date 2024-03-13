@@ -1,0 +1,4 @@
+- On node1: `docker swarm init`
+- Copy the command to join the swarm from the output on node2
+- On node1 (the manager node): `docker network create --driver=overlay --attachable w-overlay`
+- 

@@ -22,7 +22,7 @@ namespace Raft.Observability;
 
 public static class ObservabilityRegistration
 {
-    public static WebApplicationBuilder AddObservability(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddObservability(this WebApplicationBuilder builder, bool logToConsole = true)
     {
         Activity.DefaultIdFormat = ActivityIdFormat.W3C;
 
@@ -140,33 +140,33 @@ public static class ObservabilityRegistration
         return builder;
     }
 
-    public static IHostBuilder AddSerilog(this IHostBuilder hostBuilder)
+    public static IHostBuilder AddSerilog(this IHostBuilder hostBuilder, bool logToConsole = true)
     {
         hostBuilder.UseSerilog(
             (context, provider, options) =>
             {
                 var environment = context.HostingEnvironment.EnvironmentName;
                 var configuration = context.Configuration;
-                SerilogBaseConfig(options, environment, configuration);
+                SerilogBaseConfig(options, environment, configuration, logToConsole);
             }
         );
         return hostBuilder;
     }
 
-    public static HostApplicationBuilder AddSerilog(this HostApplicationBuilder hostBuilder)
+    public static HostApplicationBuilder AddSerilog(this HostApplicationBuilder hostBuilder, bool logToConsole = true)
     {
         var environment = hostBuilder.Environment.EnvironmentName;
         var configuration = hostBuilder.Configuration;
 
         hostBuilder.Services.AddSerilog((serviceProvide, config) =>
         {
-            SerilogBaseConfig(config, environment, configuration);
+            SerilogBaseConfig(config, environment, configuration, logToConsole);
         });
 
         return hostBuilder;
     }
 
-    private static void SerilogBaseConfig(LoggerConfiguration options, string environment, IConfiguration configuration)
+    private static void SerilogBaseConfig(LoggerConfiguration options, string environment, IConfiguration configuration, bool logToConsole)
     {
         ObservabilityOptions observabilityOptions = new();
 
@@ -194,8 +194,12 @@ public static class ObservabilityRegistration
                     {
                         { "service.name", observabilityOptions.ServiceName },
                     };
-        })
-        .WriteTo.Console();
+        });
+
+        if (logToConsole)
+        {
+            options.WriteTo.Console();
+        }
     }
 
     public static ILoggingBuilder AddOpenTelemetryLogging(this ILoggingBuilder loggingBuilder, ObservabilityOptions observabilityOptions)
