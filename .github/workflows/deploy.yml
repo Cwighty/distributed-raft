@@ -38,7 +38,7 @@ jobs:
     steps:
       - name: run container to ensure network
         run: |
-          docker run -d --rm --name w-network-opener --network w-overlay alpine sleep 10 
+          docker run -d --rm --name w-network-opener --network w-overlay alpine sleep 30 
 
   deploy-other-node:
     needs: ensure-network
