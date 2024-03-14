@@ -3,7 +3,7 @@ using Raft.Node.Options;
 
 namespace Raft.Node;
 
-enum NodeState
+public enum NodeState
 {
     Follower,
     Candidate,
@@ -12,7 +12,7 @@ enum NodeState
 
 public class NodeService : BackgroundService
 {
-    private NodeState state = NodeState.Follower;
+    public NodeState State { get; private set; } = NodeState.Follower;
     private DateTime lastHeartbeatReceived;
     private int electionTimeout;
     private Random random = new Random();
@@ -24,7 +24,7 @@ public class NodeService : BackgroundService
     public int CommittedIndex { get; private set; }
     public int VotedFor { get; private set; }
     public int LeaderId { get; private set; }
-    public bool IsLeader => state == NodeState.Leader;
+    public bool IsLeader => State == NodeState.Leader;
 
 
     private readonly HttpClient client;
@@ -67,7 +67,7 @@ public class NodeService : BackgroundService
         lastHeartbeatReceived = DateTime.UtcNow;
         while (!stoppingToken.IsCancellationRequested)
         {
-            if (state == NodeState.Leader)
+            if (State == NodeState.Leader)
             {
                 Task.Delay(100).Wait();
                 SendHeartbeats();
@@ -88,7 +88,7 @@ public class NodeService : BackgroundService
 
     public async Task StartElection(int term = 0)
     {
-        state = NodeState.Candidate;
+        State = NodeState.Candidate;
         if (term > 0)
         {
             CurrentTerm = term;
@@ -131,14 +131,14 @@ public class NodeService : BackgroundService
 
         if (votesReceived > options.NodeCount / 2)
         {
-            state = NodeState.Leader;
+            State = NodeState.Leader;
             LeaderId = Id;
             Log("Became the Leader.");
             SendHeartbeats();
         }
         else
         {
-            state = NodeState.Follower;
+            State = NodeState.Follower;
             Log("Lost election.");
         }
     }
@@ -183,7 +183,7 @@ public class NodeService : BackgroundService
         {
             CurrentTerm = theirTerm;
             VotedFor = candidateId;
-            state = NodeState.Follower;
+            State = NodeState.Follower;
             ResetElectionTimeout();
             Log($"Voted for node {candidateId} in election term {theirTerm}.");
             return true;
@@ -223,9 +223,9 @@ public class NodeService : BackgroundService
         }
     }
 
-    private async void SendHeartbeats()
+    public async void SendHeartbeats()
     {
-        if (state != NodeState.Leader)
+        if (State != NodeState.Leader)
         {
             return;
         }
@@ -251,7 +251,7 @@ public class NodeService : BackgroundService
 
             if (response.IsSuccessStatusCode)
             {
-                Log($"Heartbeat sent | Term: {currentTerm} | Committed: {committedIndex} | Occupation: {state}");
+                Log($"Heartbeat sent | Term: {currentTerm} | Committed: {committedIndex} | Occupation: {State}");
             }
             else
             {
@@ -318,7 +318,7 @@ public class NodeService : BackgroundService
         {
             ResetElectionTimeout();
             CurrentTerm = request.Term;
-            state = NodeState.Follower;
+            State = NodeState.Follower;
             LeaderId = request.LeaderId;
             Log($"Heartbeat received | Term: {CurrentTerm} | Committed: {CommittedIndex} | Following: {LeaderId}");
 
