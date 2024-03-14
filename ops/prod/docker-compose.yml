@@ -43,7 +43,6 @@ services:
       - manager
     networks:
       - w-overlay
-    restart: unless-stopped
 
   shop:
     container_name: w-shop
