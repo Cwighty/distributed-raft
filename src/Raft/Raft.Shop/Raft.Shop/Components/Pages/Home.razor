@@ -14,6 +14,19 @@
     private string message = "";
     protected async override Task OnInitializedAsync()
     {
+        var compareAndSwapRequest = new CompareAndSwapRequest
+        {
+            Key = "test",
+            OldValue = null,
+            NewValue = message 
+        };
+
+        try
+        {
+            await Http.PostAsJsonAsync("gateway/Storage/CompareAndSwap", compareAndSwapRequest);
+        }
+        catch{}
+
         var response = await Http.GetFromJsonAsync<VersionedValue<string>>("gateway/Storage/EventualGet?key=test");
         message = response?.Value ?? "";
         StateHasChanged();
