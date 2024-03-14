@@ -202,7 +202,7 @@ public class NodeService : BackgroundService
 
     private void ResetElectionTimeout()
     {
-        electionTimeout = random.Next(3000, 6500);
+        electionTimeout = random.Next(5000, 10500);
         lastHeartbeatReceived = DateTime.UtcNow;
     }
 
@@ -225,6 +225,10 @@ public class NodeService : BackgroundService
 
     private async void SendHeartbeats()
     {
+        if (state != NodeState.Leader)
+        {
+            return;
+        }
         foreach (var nodeAddress in otherNodeAddresses)
         {
             await RequestAppendEntriesAsync(nodeAddress, CurrentTerm, CommittedIndex, Data);
