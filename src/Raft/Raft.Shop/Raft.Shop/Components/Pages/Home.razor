@@ -8,20 +8,28 @@
 <p>Welcome to your new app.</p>
 <p>@message</p>
 
-<button class="btn btn-primary" @onclick="OnClick">hey</button>
+<button class="btn btn-primary" @onclick="OnClick">Tally</button>
 
 @code {
-    private string message = "Hello, world!";
+    private string message = "";
     protected async override Task OnInitializedAsync()
     {
-        var response = await Http.GetFromJsonAsync<VersionedValue<string>>("Storage/StrongGet?key=test");
+        var response = await Http.GetFromJsonAsync<VersionedValue<string>>("gateway/Storage/EventualGet?key=test");
         message = response?.Value ?? "";
         StateHasChanged();
     }
 
-    private void OnClick()
+    private async Task OnClick()
     {
-        message = "Test";
+        var compareAndSwapRequest = new CompareAndSwapRequest
+        {
+            Key = "test",
+            OldValue = message,
+            NewValue = message + "1" 
+        };
+        await Http.PostAsJsonAsync("gateway/Storage/CompareAndSwap", compareAndSwapRequest);
+        var response = await Http.GetFromJsonAsync<VersionedValue<string>>("gateway/Storage/StrongGet?key=test");
+        message = response?.Value ?? "";
         StateHasChanged();
     }
 }
