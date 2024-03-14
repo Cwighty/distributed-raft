@@ -202,7 +202,7 @@ public class NodeService : BackgroundService
 
     private void ResetElectionTimeout()
     {
-        electionTimeout = random.Next(1000, 3500);
+        electionTimeout = random.Next(3000, 6500);
         lastHeartbeatReceived = DateTime.UtcNow;
     }
 
