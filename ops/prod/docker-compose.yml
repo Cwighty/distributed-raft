@@ -8,6 +8,7 @@ x-node_base: &node_base
     context: ../../src/Raft/
     dockerfile: ./Raft.Node/Dockerfile
     target: final
+  restart: unless-stopped
 
 x-node-environment: &node-environment
   ASPNETCORE_URLS: http://+:8080
@@ -42,6 +43,7 @@ services:
       - manager
     networks:
       - w-overlay
+    restart: unless-stopped
 
   shop:
     container_name: w-shop
@@ -57,6 +59,7 @@ services:
       - manager
     networks:
       - w-overlay
+    restart: unless-stopped
 
   gateway:
     container_name: w-gateway
@@ -73,6 +76,7 @@ services:
       - manager
     networks:
       - w-overlay
+    restart: unless-stopped
 
   node1:
     container_name: w-node1

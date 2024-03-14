@@ -21,6 +21,7 @@ services:
       - manager
     networks:
       - w-overlay
+    restart: unless-stopped
 
   tempo:
     container_name: w-tempo
@@ -87,6 +88,7 @@ services:
       - manager
     networks:
       - w-overlay
+    restart: unless-stopped
 
 volumes:
   w-loki-data:
