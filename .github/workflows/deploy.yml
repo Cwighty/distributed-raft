@@ -31,8 +31,17 @@ jobs:
           docker compose down
           docker compose --profile manager up -d --build
 
-  deploy-other-node:
+  ensure-network:
     needs: deploy-application
+    runs-on: [self-hosted, alex-office4]
+
+    steps:
+      - name: run container to ensure network
+        run: |
+          docker run -d --rm --name w-network-opener --network w-overlay alpine sleep 3000
+
+  deploy-other-node:
+    needs: ensure-network
     runs-on: [self-hosted, alex-office4]
     steps:
       - name: checkout repo
@@ -42,4 +51,4 @@ jobs:
         run: |
           cd ops/prod
           docker compose pull
-          docker compose --profile worker up -d --build 
+          docker compose --profile worker up -d --build
