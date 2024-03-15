@@ -23,7 +23,7 @@ public class NodeServiceTests
     {
         var client = new HttpClient();
         var logger = new NullLogger<NodeService>();
-        var options = new ApiOptions { NodeIdentifier = 1, NodeCount = 3, NodeServicePort = 5000 };
+        var options = new ApiOptions { NodeIdentifier = 1, NodeCount = 3, NodeServicePort = 5000, EntryLogPath = "./entrylogs"};
         nodeService = new NodeService(client, logger, options);
     }
 
