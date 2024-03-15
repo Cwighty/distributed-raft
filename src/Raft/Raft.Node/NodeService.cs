@@ -237,10 +237,6 @@ public class NodeService : BackgroundService
 
     private async Task RequestAppendEntriesAsync(string nodeAddress, int currentTerm, int committedIndex, Dictionary<string, VersionedValue<string>> data)
     {
-        if (State != NodeState.Leader)
-        {
-            return;
-        }
 
         var request = new AppendEntriesRequest
         {
@@ -252,6 +248,11 @@ public class NodeService : BackgroundService
 
         try
         {
+            if (State != NodeState.Leader)
+            {
+                Log("Not the leader. Why are we sending heartbeats.");
+                return;
+            }
             var response = await client.PostAsJsonAsync($"{nodeAddress}/raft/append-entries", request);
 
             if (response.IsSuccessStatusCode)
