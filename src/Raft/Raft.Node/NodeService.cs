@@ -179,7 +179,7 @@ public class NodeService : BackgroundService
             return false;
         }
 
-        if (theirTerm >= CurrentTerm && (VotedFor == 0 || VotedFor == candidateId))
+        if (theirTerm > CurrentTerm || theirTerm == CurrentTerm && VotedFor == candidateId)
         {
             State = NodeState.Follower;
             CurrentTerm = theirTerm;
