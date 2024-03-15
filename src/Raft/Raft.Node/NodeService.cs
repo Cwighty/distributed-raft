@@ -175,15 +175,15 @@ public class NodeService : BackgroundService
     {
         if (theirTerm < CurrentTerm || theirCommittedLogIndex < CommittedIndex)
         {
-            Log($"Denied vote request from node {candidateId} in election cycle {theirTerm}.");
+            Log($"Denied vote request from node {candidateId} in election cycle {theirTerm}. {theirCommittedLogIndex} < {CommittedIndex}");
             return false;
         }
 
-        if (theirTerm > CurrentTerm || (theirTerm == CurrentTerm && (VotedFor == 0 || VotedFor == candidateId)))
+        if (theirTerm >= CurrentTerm && (VotedFor == 0 || VotedFor == candidateId))
         {
+            State = NodeState.Follower;
             CurrentTerm = theirTerm;
             VotedFor = candidateId;
-            State = NodeState.Follower;
             ResetElectionTimeout();
             Log($"Voted for node {candidateId} in election term {theirTerm}.");
             return true;
@@ -237,6 +237,11 @@ public class NodeService : BackgroundService
 
     private async Task RequestAppendEntriesAsync(string nodeAddress, int currentTerm, int committedIndex, Dictionary<string, VersionedValue<string>> data)
     {
+        if (State != NodeState.Leader)
+        {
+            return;
+        }
+
         var request = new AppendEntriesRequest
         {
             LeaderId = Id,
