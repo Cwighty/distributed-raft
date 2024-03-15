@@ -1,5 +1,9 @@
 ﻿namespace Raft.UnitTests;
 
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -8,10 +12,6 @@ using NUnit.Framework;
 using Raft.Data.Models;
 using Raft.Node;
 using Raft.Node.Options;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
 
 [TestFixture]
 public class NodeServiceTests
