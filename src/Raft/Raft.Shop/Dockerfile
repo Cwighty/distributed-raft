@@ -12,7 +12,7 @@
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/README.md
 
 # Create a stage for building the application.
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 
 COPY . /src
 WORKDIR /src/Raft.Shop/Raft.Shop
@@ -29,7 +29,6 @@ RUN dotnet publish -a ${TARGETARCH/amd64/x64} --use-current-runtime -o /app
 
 # If you need to enable globalization and time zones:
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/enable-globalization.md
-
 ################################################################################
 # Create a new stage for running the application that contains the minimal
 # runtime dependencies for the application. This often uses a different base
@@ -50,10 +49,10 @@ RUN --mount=type=bind,target=/docker-context \
     find ./ -mindepth 0 -maxdepth 4 \( -name "*.sln" -o -name "*.csproj" -o -iname "nuget.config" \) -exec cp --parents "{}" /src \;
 COPY . /src
 WORKDIR /src/Raft.Shop/Raft.Shop
-CMD dotnet watch run --no-launch-profile --non-interactive 
+CMD dotnet watch run --no-launch-profile --non-interactive
 
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy AS final 
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine as final
 WORKDIR /app
 
 # Copy everything needed to run the app from the "build" stage.

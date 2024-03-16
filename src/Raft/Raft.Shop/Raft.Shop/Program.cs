@@ -44,6 +44,13 @@ app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(Counter).Assembly);
 
-CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
+try
+{
+    CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
+}
+catch
+{
+    Console.WriteLine("Failed to set default culture to en-US. This is expected in some environments.");
+}
 
 app.Run();
