@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Http;
 using Raft.Node;
 using Raft.Node.Options;
+using Raft.Node.Services;
 using Raft.Observability;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSingleton<INodeClient, NodeClient>();
 
 builder.Services.AddHttpClient();
 if (builder.Environment.IsProduction())

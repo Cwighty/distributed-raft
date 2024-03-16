@@ -1,5 +1,6 @@
 ﻿using Raft.Data.Models;
 using Raft.Node.Options;
+using Raft.Node.Services;
 
 namespace Raft.Node;
 
@@ -12,31 +13,30 @@ public enum NodeState
 
 public class NodeService : BackgroundService
 {
-    public NodeState State { get; private set; } = NodeState.Follower;
+    public NodeState State { get; set; } = NodeState.Follower;
     private DateTime lastHeartbeatReceived;
     private int electionTimeout;
     private Random random = new Random();
-    private List<string> otherNodeAddresses = new List<string>();
+    public List<string> OtherNodeAddresses { get; set; } = new List<string>();
 
     public int Id { get; private set; }
     public Dictionary<string, VersionedValue<string>> Data { get; set; } = new();
-    public int CurrentTerm { get; private set; } = 0;
-    public int CommittedIndex { get; private set; }
-    public int VotedFor { get; private set; }
-    public int LeaderId { get; private set; }
+    public int CurrentTerm { get; set; } = 0;
+    public int CommittedIndex { get; set; }
+    public int VotedFor { get; set; }
+    public int LeaderId { get; set; }
     public bool IsLeader => State == NodeState.Leader;
 
 
-    private readonly HttpClient client;
     private readonly ILogger<NodeService> logger;
     private readonly ApiOptions options;
+    private readonly INodeClient nodeClient;
 
-    public NodeService(HttpClient client, ILogger<NodeService> logger, ApiOptions options)
+    public NodeService(ILogger<NodeService> logger, ApiOptions options, INodeClient nodeClient)
     {
-        this.client = client;
         this.logger = logger;
         this.options = options;
-
+        this.nodeClient = nodeClient;
         Id = options.NodeIdentifier;
         electionTimeout = random.Next(150, 300);
         for (int i = 1; i <= options.NodeCount; i++)
@@ -45,7 +45,7 @@ public class NodeService : BackgroundService
             {
                 continue;
             }
-            otherNodeAddresses.Add($"http://node{i}:{options.NodeServicePort}");
+            OtherNodeAddresses.Add($"http://node{i}:{options.NodeServicePort}");
         }
     }
 
@@ -105,12 +105,12 @@ public class NodeService : BackgroundService
         if (Data.Count() > 0)
             myLatestCommittedLogIndex = Data.Values.Max(v => v.Version);
 
-        foreach (var nodeAddress in otherNodeAddresses)
+        foreach (var nodeAddress in OtherNodeAddresses)
         {
             VoteResponse? response = null;
             try
             {
-                response = await RequestVoteAsync(nodeAddress, CurrentTerm, myLatestCommittedLogIndex);
+                response = await nodeClient.RequestVoteAsync(nodeAddress, CurrentTerm, myLatestCommittedLogIndex, Id);
             }
             catch (Exception ex)
             {
@@ -141,29 +141,6 @@ public class NodeService : BackgroundService
             State = NodeState.Follower;
             Log("Lost election.");
         }
-    }
-
-    private async Task<VoteResponse> RequestVoteAsync(string addr, int currentTerm, long myLatestCommittedLogIndex)
-    {
-        var request = new VoteRequest
-        {
-            CandidateId = Id,
-            Term = currentTerm,
-            LastLogIndex = myLatestCommittedLogIndex
-        };
-
-        var response = await client.PostAsJsonAsync($"{addr}/raft/request-vote", request);
-
-        if (response.IsSuccessStatusCode)
-        {
-            var voteResponse = await response.Content.ReadFromJsonAsync<VoteResponse>();
-            if (voteResponse != null)
-            {
-                return voteResponse;
-            }
-        }
-
-        throw new Exception("Vote request failed.");
     }
 
     public bool VoteForCandidate(VoteRequest request)
@@ -229,7 +206,7 @@ public class NodeService : BackgroundService
         {
             return;
         }
-        foreach (var nodeAddress in otherNodeAddresses)
+        foreach (var nodeAddress in OtherNodeAddresses)
         {
             await RequestAppendEntriesAsync(nodeAddress, CurrentTerm, CommittedIndex, Data);
         }
@@ -250,12 +227,13 @@ public class NodeService : BackgroundService
         {
             if (State != NodeState.Leader)
             {
-                Log("Not the leader. Why are we sending heartbeats.");
+                Log("Not the leader. Why are we sending heartbeats?");
                 return;
             }
-            var response = await client.PostAsJsonAsync($"{nodeAddress}/raft/append-entries", request);
 
-            if (response.IsSuccessStatusCode)
+            var success = await nodeClient.RequestAppendEntriesAsync(nodeAddress, request);
+
+            if (success)
             {
                 Log($"Heartbeat sent | Term: {currentTerm} | Committed: {committedIndex} | Occupation: {State}");
             }
@@ -383,9 +361,9 @@ public class NodeService : BackgroundService
             throw new Exception("Not the leader.");
         }
         var confirmLeaderCount = 1;
-        foreach (var nodeAddr in otherNodeAddresses)
+        foreach (var nodeAddr in OtherNodeAddresses)
         {
-            if (await ConfirmLeader(nodeAddr))
+            if (await nodeClient.ConfirmLeaderAsync(nodeAddr, LeaderId))
             {
                 confirmLeaderCount++;
             }
@@ -402,16 +380,6 @@ public class NodeService : BackgroundService
             }
         }
         throw new Exception("Not the leader.");
-    }
-
-    public async Task<bool> ConfirmLeader(string addr)
-    {
-        var leaderId = await client.GetFromJsonAsync<int>($"{addr}/raft/who-is-leader");
-        if (leaderId == Id)
-        {
-            return true;
-        }
-        return false;
     }
 
     public VersionedValue<string> EventualGet(string key)
@@ -455,9 +423,9 @@ public class NodeService : BackgroundService
     private async Task<bool> BroadcastReplication(string key, string value, int index)
     {
         var confirmReplicationCount = 1;
-        foreach (var nodeAddr in otherNodeAddresses)
+        foreach (var nodeAddr in OtherNodeAddresses)
         {
-            if (await RequestAppendEntry(nodeAddr, CurrentTerm, key, value, index))
+            if (await nodeClient.RequestAppendEntryAsync(nodeAddr, CurrentTerm, key, value, index))
             {
                 confirmReplicationCount++;
             }
@@ -466,26 +434,6 @@ public class NodeService : BackgroundService
         {
             return true;
         }
-        return false;
-    }
-
-    private async Task<bool> RequestAppendEntry(string addr, int term, string key, string value, int index)
-    {
-        var request = new AppendEntryRequest
-        {
-            Term = term,
-            Key = key,
-            Value = value,
-            Version = index
-        };
-
-        var response = await client.PostAsJsonAsync($"{addr}/raft/append-entry", request);
-
-        if (response.IsSuccessStatusCode)
-        {
-            return true;
-        }
-
         return false;
     }
 }
