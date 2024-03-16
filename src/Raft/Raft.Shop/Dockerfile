@@ -43,7 +43,7 @@ RUN dotnet publish -a ${TARGETARCH/amd64/x64} --use-current-runtime -o /app
 # or SHA (e.g., mcr.microsoft.com/dotnet/aspnet@sha256:f3d99f54d504a21d38e4cc2f13ff47d67235efeeb85c109d3d1ff1808b38d034).
 
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS development
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS development
 # https://stackoverflow.com/questions/68597982/net-package-restore-in-docker-cached-separately-from-build
 RUN --mount=type=bind,target=/docker-context \
     cd /docker-context/; \
@@ -53,7 +53,7 @@ WORKDIR /src/Raft.Shop/Raft.Shop
 CMD dotnet watch run --no-launch-profile --non-interactive 
 
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-debian AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim AS final
 WORKDIR /app
 
 # Copy everything needed to run the app from the "build" stage.
