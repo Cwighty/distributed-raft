@@ -21,7 +21,19 @@ public class NodeService : BackgroundService
 
     public int Id { get; private set; }
     public Dictionary<string, VersionedValue<string>> Data { get; set; } = new();
-    public int CurrentTerm { get; set; } = 0;
+    private int currentTerm = 0;
+    public int CurrentTerm
+    {
+        get { return currentTerm; }
+        set
+        {
+            if (value > currentTerm)
+            {
+                VotedFor = 0;
+                currentTerm = value;
+            }
+        }
+    }
     public int CommittedIndex { get; set; }
     public int VotedFor { get; set; }
     public int LeaderId { get; set; }
@@ -150,26 +162,28 @@ public class NodeService : BackgroundService
 
     public bool VoteForCandidate(int candidateId, int theirTerm, long theirCommittedLogIndex)
     {
-        if (theirTerm < CurrentTerm || theirCommittedLogIndex < CommittedIndex)
+        if (VotedFor != 0)
         {
-            Log($"Denied vote request from node {candidateId} in election cycle {theirTerm}. {theirCommittedLogIndex} < {CommittedIndex}");
+            Log($"Already voted for node {VotedFor} in election cycle {CurrentTerm}");
+            return false;
+        }
+        if (theirTerm < CurrentTerm)
+        {
+            Log($"Denied vote request from node {candidateId} in election cycle {theirTerm}. They had old term.");
+            return false;
+        }
+        if (theirCommittedLogIndex < CommittedIndex)
+        {
+            Log($"Denied vote request from node {candidateId} in election cycle {theirTerm}. They had old commit index.");
             return false;
         }
 
-        if (theirTerm > CurrentTerm || theirTerm == CurrentTerm && VotedFor == candidateId)
-        {
-            State = NodeState.Follower;
-            CurrentTerm = theirTerm;
-            VotedFor = candidateId;
-            ResetElectionTimeout();
-            Log($"Voted for node {candidateId} in election term {theirTerm}.");
-            return true;
-        }
-        else
-        {
-            Log($"Denied vote request from node {candidateId} in election cycle {theirTerm}.");
-            return false;
-        }
+        State = NodeState.Follower;
+        CurrentTerm = theirTerm;
+        VotedFor = candidateId;
+        ResetElectionTimeout();
+        Log($"Voted for node {candidateId} in election term {theirTerm}.");
+        return true;
     }
 
     private bool HasElectionTimedOut()

@@ -3,29 +3,26 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raft.Node", "Raft.Node\Raft.Node.csproj", "{1517D25D-6774-4656-A73D-BC95B1121101}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Raft.Node", "Raft.Node\Raft.Node.csproj", "{1517D25D-6774-4656-A73D-BC95B1121101}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raft.Gateway", "Raft.Gateway\Raft.Gateway.csproj", "{CDECD6DA-704A-47C0-8E45-2A1604E59830}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Raft.Gateway", "Raft.Gateway\Raft.Gateway.csproj", "{CDECD6DA-704A-47C0-8E45-2A1604E59830}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Raft.Shop", "Raft.Shop", "{E2AB1730-F684-4C85-A8CB-1B7398EEBF23}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raft.Shop", "Raft.Shop\Raft.Shop\Raft.Shop.csproj", "{9406A354-30D4-4C60-B8B4-B11727580EAD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Raft.Shop", "Raft.Shop\Raft.Shop\Raft.Shop.csproj", "{9406A354-30D4-4C60-B8B4-B11727580EAD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raft.Observability", "Raft.Observability\Raft.Observability.csproj", "{50621167-7E87-44F0-9156-FD1903AB56FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Raft.Observability", "Raft.Observability\Raft.Observability.csproj", "{50621167-7E87-44F0-9156-FD1903AB56FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raft.Shop.Client", "Raft.Shop\Raft.Shop.Client\Raft.Shop.Client.csproj", "{243888FC-E4D5-42A7-8891-5ABA6D72DE00}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Raft.Shop.Client", "Raft.Shop\Raft.Shop.Client\Raft.Shop.Client.csproj", "{243888FC-E4D5-42A7-8891-5ABA6D72DE00}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raft.Data", "Raft.Data\Raft.Data.csproj", "{8851F0E6-6D60-4109-BEE6-538408C404CE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Raft.Data", "Raft.Data\Raft.Data.csproj", "{8851F0E6-6D60-4109-BEE6-538408C404CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raft.UnitTests", "Raft.UnitTests\Raft.UnitTests.csproj", "{B1A7FFD1-E854-4B6C-A66E-EB4FA8A2CC64}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Raft.UnitTests", "Raft.UnitTests\Raft.UnitTests.csproj", "{B1A7FFD1-E854-4B6C-A66E-EB4FA8A2CC64}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{1517D25D-6774-4656-A73D-BC95B1121101}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -56,6 +53,9 @@ Global
 		{B1A7FFD1-E854-4B6C-A66E-EB4FA8A2CC64}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1A7FFD1-E854-4B6C-A66E-EB4FA8A2CC64}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1A7FFD1-E854-4B6C-A66E-EB4FA8A2CC64}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{9406A354-30D4-4C60-B8B4-B11727580EAD} = {E2AB1730-F684-4C85-A8CB-1B7398EEBF23}
