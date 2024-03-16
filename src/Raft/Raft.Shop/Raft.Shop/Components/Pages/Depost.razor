@@ -1,0 +1,86 @@
+@rendermode RenderMode.InteractiveServer
+@page "/deposit"
+
+@using Raft.Data.Services
+
+@inject IAccountService AccountService
+
+<h3>Deposit</h3>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="usernameInput" class="form-label">Username</label>
+                <input type="text" class="form-control" id="usernameInput" @bind="username" @onfocus="Clear" @onblur="GetBalance">
+            </div>
+        </div>
+    </div>
+    @if (!string.IsNullOrEmpty(username))
+    {
+        <div class="card col-md-6">
+            <div class="card-header">
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h5 class="text-uppercase">@username's Account</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h5>Current Balance: @balance.ToString("C")</h5>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="depositAmount" class="form-label">Deposit Amount</label>
+                            <input type="number" class="form-control" id="depositAmount" @bind="amount" @onblur="FormatMoney">
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end mt-3">
+                    <button class="btn btn-primary" disabled="@IsDisabled()" @onclick="Deposit">Deposit</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string username = "";
+    private decimal amount = 0;
+    private decimal balance = 0;
+
+    private void Clear()
+    {
+        username = "";
+    }
+
+    private async Task GetBalance()
+    {
+        var response = await AccountService.GetBalanceAsync(username);
+        balance = response;
+    }
+
+    private async Task Deposit()
+    {
+        await AccountService.DepositAsync(username, amount);
+        await GetBalance();
+        amount = 0;
+    }
+
+    private void FormatMoney()
+    {
+        if (amount < 0)
+        {
+            amount = 0;
+        }
+        amount = Math.Round(amount, 2);
+    }
+
+    private bool IsDisabled()
+    {
+        return string.IsNullOrEmpty(username) || amount <= 0;
+    }
+}

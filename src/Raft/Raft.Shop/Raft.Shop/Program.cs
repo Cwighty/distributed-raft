@@ -1,4 +1,6 @@
-﻿using Raft.Observability;
+﻿using System.Globalization;
+using Raft.Data.Services;
+using Raft.Observability;
 using Raft.Shop.Client.Pages;
 using Raft.Shop.Components;
 using Raft.Shop.Options;
@@ -15,6 +17,8 @@ builder.AddObservability();
 
 builder.Services.AddHttpClient("GatewayClient", client => client.BaseAddress = new Uri(builder.Configuration.GetSection(nameof(ApiOptions))["GatewayAddress"] ?? throw new InvalidOperationException("Gateway address not found.")));
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("GatewayClient"));
+
+builder.Services.AddScoped<IAccountService, AccountService>();
 
 var app = builder.Build();
 
@@ -39,5 +43,7 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(Counter).Assembly);
+
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
 
 app.Run();

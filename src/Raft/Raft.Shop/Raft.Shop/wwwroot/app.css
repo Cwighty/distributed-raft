@@ -1,5 +1,13 @@
+/* color pallete
+    #fffcf2
+    #ccc5b9
+    #403d39
+    #252422
+    #eb5e28
+*/
+
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: "Montserrat", sans-serif;
 }
 
 a, .btn-link {
@@ -7,14 +15,32 @@ a, .btn-link {
 }
 
 .btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+    color: #fffcf2;
+    background-color: #eb5e28;
+    border-color: #eb5e28;
 }
 
+    .btn-primary:hover, .btn-primary:active, .btn-primary:focus-visible {
+        color: #fffcf2;
+        background-color: #eb5e28 !important;
+        border-color: #252422;
+        transition: all 0.2s ease-in-out;
+        border-radius: 0;
+    }
+
+    .btn-primay:focus-visible {
+        box-shadow: 0 0 0 0.1rem #fff, 0 0 0 0.25rem #eb5e28 !important;
+    }
+
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem #252422, 0 0 0 0.25rem #eb5e28;
 }
+
+
+.nav-link:hover {
+    background-color: #b55834 !important;
+}
+
 
 .content {
     padding-top: 1.1rem;
