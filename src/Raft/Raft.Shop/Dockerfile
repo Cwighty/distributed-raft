@@ -29,14 +29,7 @@ RUN dotnet publish -a ${TARGETARCH/amd64/x64} --use-current-runtime -o /app
 
 # If you need to enable globalization and time zones:
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/enable-globalization.md
-ENV \
-    DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
-    LC_ALL=en_US.UTF-8 \
-    LANG=en_US.UTF-8
 
-RUN apk add --no-cache \
-    icu-data-full \
-    icu-libs
 ################################################################################
 # Create a new stage for running the application that contains the minimal
 # runtime dependencies for the application. This often uses a different base
@@ -62,6 +55,15 @@ CMD dotnet watch run --no-launch-profile --non-interactive
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
 WORKDIR /app
+
+ENV \
+    DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
+    LC_ALL=en_US.UTF-8 \
+    LANG=en_US.UTF-8
+
+RUN apk add --no-cache \
+    icu-data-full \
+    icu-libs
 
 # Copy everything needed to run the app from the "build" stage.
 COPY --from=build /app .
