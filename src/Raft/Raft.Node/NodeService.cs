@@ -162,23 +162,23 @@ public class NodeService : BackgroundService
 
     public bool VoteForCandidate(int candidateId, int theirTerm, long theirCommittedLogIndex)
     {
-        if (theirTerm > CurrentTerm)
-        {
-            CurrentTerm = theirTerm;
-        }
-        if (VotedFor != 0)
-        {
-            Log($"Already voted for node {VotedFor} in election cycle {CurrentTerm}");
-            return false;
-        }
         if (theirTerm < CurrentTerm)
         {
             Log($"Denied vote request from node {candidateId} in election cycle {theirTerm}. They had old term.");
             return false;
         }
+        if (theirTerm > CurrentTerm)
+        {
+            CurrentTerm = theirTerm;
+        }
         if (theirCommittedLogIndex < CommittedIndex)
         {
             Log($"Denied vote request from node {candidateId} in election cycle {theirTerm}. They had old commit index.");
+            return false;
+        }
+        if (VotedFor != 0)
+        {
+            Log($"Already voted for node {VotedFor} in election cycle {CurrentTerm}");
             return false;
         }
 
