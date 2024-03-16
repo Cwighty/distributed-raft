@@ -162,6 +162,10 @@ public class NodeService : BackgroundService
 
     public bool VoteForCandidate(int candidateId, int theirTerm, long theirCommittedLogIndex)
     {
+        if (theirTerm > CurrentTerm)
+        {
+            CurrentTerm = theirTerm;
+        }
         if (VotedFor != 0)
         {
             Log($"Already voted for node {VotedFor} in election cycle {CurrentTerm}");
@@ -179,7 +183,6 @@ public class NodeService : BackgroundService
         }
 
         State = NodeState.Follower;
-        CurrentTerm = theirTerm;
         VotedFor = candidateId;
         ResetElectionTimeout();
         Log($"Voted for node {candidateId} in election term {theirTerm}.");
