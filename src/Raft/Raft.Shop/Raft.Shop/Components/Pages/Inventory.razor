@@ -4,40 +4,41 @@
 
 <h3>Inventory</h3>
 
+<div class="text-center mb-4">
+    <label for="filter" class="form-label">Filter products</label>
+    <input type="text" @bind-value="@filter" @bind-value:event="oninput" class="form-control" placeholder="Filter by name..." style="max-width: 500px; margin: auto;">
+
+</div>
+
 @if (products == null || !products.Any())
 {
     <div class="alert alert-info" role="alert">
         Loading products...
     </div>
-} 
-else 
+}
+else
 {
-    <table class="table table-striped table-hover">
-        <thead class="thead-dark">
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Qty</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var product in products)
-            {
-                <tr>
-                    <td>@product.Id</td>
-                    <td>@product.Name</td>
-                    <td>@product.Description</td>
-                    <td>0</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="d-flex flex-wrap justify-content-center">
+        @foreach (var product in products.Where(p => p.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)))
+        {
+            <div class="card m-2" style="width: 18rem;">
+                <div class="card-body">
+                    <h5 class="card-title mb-2">@product.Name</h5>
+                    <div class="d-flex justify-content-between">
+                        <h6 class="card-subtitle mb-2 text-muted">Price: @product.Price.ToString("C")</h6>
+                        <h6 class="card-subtitle mb-2 text-mutedd">Qty: 0</h6>
+                    </div>
+                    <p class="card-text">@product.Description</p>
+                </div>
+            </div>
+        }
+    </div>
 }
 
 @code {
     private List<Product> products = new List<Product>();
-    
+    private string filter = string.Empty;
+
     protected override void OnInitialized()
     {
         products = new List<Product>
