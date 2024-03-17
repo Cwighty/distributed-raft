@@ -28,7 +28,8 @@ public class InventoryService : IInventoryService
             OldValue = product.QuantityInStock.ToString(),
             NewValue = newStockValue.ToString()
         };
-        await client.PostAsJsonAsync($"gateway/Storage/CompareAndSwap", request);
+        var response = await client.PostAsJsonAsync($"gateway/Storage/CompareAndSwap", request);
+        response.EnsureSuccessStatusCode();
         return new Product(product.Id, product.Name, product.Description, product.Price, newStockValue);
     }
 

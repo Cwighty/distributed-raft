@@ -414,11 +414,20 @@ public class NodeService : BackgroundService
         return new VersionedValue<string> { Value = String.Empty, Version = 0 };
     }
 
-    public async Task CompareAndSwap(string key, string? oldValue, string newValue)
+    public async Task CompareAndSwap(string key, string? unmodifiedValue, string modifiedValue)
     {
+        Log($"CompareAndSwap called with key: {key}, oldValue: {unmodifiedValue}, newValue: {modifiedValue}");
         if (!IsLeader)
         {
             throw new Exception("Not the leader.");
+        }
+
+        var currentValue = Data.ContainsKey(key) ? Data[key].Value : String.Empty;
+        Log($"Stored value: {currentValue} | Modified value: {modifiedValue} | Unmodified value: {unmodifiedValue}");
+        if (unmodifiedValue != currentValue && currentValue != String.Empty)
+        {
+            Log($"Value doesnt match, failing CompareAndSwap.");
+            throw new Exception("Value does not match.");
         }
 
         var newIndex = 1;
@@ -426,14 +435,12 @@ public class NodeService : BackgroundService
         {
             newIndex = new DirectoryInfo(options.EntryLogPath).GetFiles().Length + 1;
         }
-        if (Data.ContainsKey(key) && oldValue != Data[key].Value)
-            throw new Exception("Value does not match.");
 
-        LogEntry(key, newValue, newIndex, CurrentTerm);
-        if (await BroadcastReplication(key, newValue, newIndex))
+        LogEntry(key, modifiedValue, newIndex, CurrentTerm);
+        if (await BroadcastReplication(key, modifiedValue, newIndex))
         {
             // if majority of nodes have replicated the log, update the data
-            Data[key] = new VersionedValue<string> { Value = newValue, Version = newIndex };
+            Data[key] = new VersionedValue<string> { Value = modifiedValue, Version = newIndex };
             CommittedIndex = newIndex;
             return;
         }

@@ -47,8 +47,8 @@ public class StorageController : ControllerBase
     public async Task<ActionResult<VersionedValue<string>>> EventualGet([FromQuery] string key)
     {
         _logger.LogInformation("EventualGet called with key: {key}", key);
-        var leaderAddress = FindLeaderAddress();
-        var value = await client.GetFromJsonAsync<VersionedValue<string>>($"{leaderAddress}/Storage/EventualGet?key={key}");
+        var randomAddress = GetRandomNodeAddress();
+        var value = await client.GetFromJsonAsync<VersionedValue<string>>($"{randomAddress}/Storage/EventualGet?key={key}");
         if (value == null)
         {
             throw new Exception("Value not found");
@@ -62,7 +62,15 @@ public class StorageController : ControllerBase
         _logger.LogInformation("CompareAndSwap called with key: {key}, oldValue: {oldValue}, newValue: {newValue}", request.Key, request.OldValue, request.NewValue);
         var leaderAddress = FindLeaderAddress();
         var response = await client.PostAsJsonAsync($"{leaderAddress}/Storage/CompareAndSwap", request);
-        response.EnsureSuccessStatusCode();
+        try
+        {
+            response.EnsureSuccessStatusCode();
+        }
+        catch
+        {
+            _logger.LogError("Failed to compare and swap, key: {key}, oldValue: {oldValue}, newValue: {newValue}", request.Key, request.OldValue, request.NewValue);
+            return BadRequest();
+        }
         return Ok();
     }
 

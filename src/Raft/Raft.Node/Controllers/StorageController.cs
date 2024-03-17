@@ -42,7 +42,15 @@ public class StorageController : ControllerBase
     public async Task<ActionResult> CompareAndSwap(CompareAndSwapRequest request)
     {
         _logger.LogInformation("CompareAndSwap called with key: {key}, oldValue: {value}, newValue: {newValue}", request.Key, request.OldValue, request.NewValue);
-        await node.CompareAndSwap(request.Key, request.OldValue, request.NewValue);
+        try
+        {
+            await node.CompareAndSwap(request.Key, request.OldValue, request.NewValue);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+
         return Ok();
     }
 
