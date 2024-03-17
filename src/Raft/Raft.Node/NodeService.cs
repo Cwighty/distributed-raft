@@ -175,7 +175,7 @@ public class NodeService : BackgroundService
             Log($"Denied vote request from node {candidateId} in election cycle {theirTerm}. They had old commit index.");
             return false;
         }
-        if (VotedFor != 0)
+        if (theirTerm == CurrentTerm && VotedFor != 0)
         {
             Log($"Already voted for node {VotedFor} in election cycle {CurrentTerm}");
             return false;
