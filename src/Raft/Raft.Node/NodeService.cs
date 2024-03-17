@@ -169,10 +169,6 @@ public class NodeService : BackgroundService
             Log($"Denied vote request from node {candidateId} in election cycle {theirTerm}. They had old term.");
             return false;
         }
-        if (theirTerm > CurrentTerm)
-        {
-            CurrentTerm = theirTerm;
-        }
         if (theirCommittedLogIndex < CommittedIndex)
         {
             Log($"Denied vote request from node {candidateId} in election cycle {theirTerm}. They had old commit index.");
@@ -185,6 +181,7 @@ public class NodeService : BackgroundService
         }
 
         State = NodeState.Follower;
+        CurrentTerm = theirTerm;
         VotedFor = candidateId;
         Log($"Voted for node {candidateId} in election term {theirTerm}.");
         return true;
