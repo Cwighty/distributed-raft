@@ -63,7 +63,7 @@ public class NodeService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        Console.WriteLine("Initializing node.");
+        Console.WriteLine("Initializing node with id: " + Id + ".");
         if (Directory.Exists(options.EntryLogPath))
         {
             var logFiles = new DirectoryInfo(options.EntryLogPath).GetFiles().OrderBy(f => f.Name);
