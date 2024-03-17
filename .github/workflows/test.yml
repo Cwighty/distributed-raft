@@ -15,4 +15,4 @@ jobs:
         run: |
           cd src/Raft
           docker build -t raft_tests .
-          docker run -i --rm raft_tests dotnet test --no-restore
+          docker run -i --rm raft_tests dotnet test 
