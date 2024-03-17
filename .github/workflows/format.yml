@@ -14,5 +14,5 @@ jobs:
       - name: Format
         run: |
           cd src/Raft
-          docker build -t raft_format 
+          docker build -t raft_format .
           docker run -i --rm raft_format dotnet format --verify-no-changes --verbosity diagnostic --no-restore
