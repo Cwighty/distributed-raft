@@ -86,6 +86,8 @@ public class InventoryService : IInventoryService
 
     public async Task<Product> DecrementProductStockAsync(Product product)
     {
+        if (product.QuantityInStock == 0)
+            throw new InvalidOperationException("Product is out of stock");
         try
         {
             return await SetCurrentStockAsync(product, product.QuantityInStock - 1);

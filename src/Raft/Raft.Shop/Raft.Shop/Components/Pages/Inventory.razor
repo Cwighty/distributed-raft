@@ -94,6 +94,10 @@ else
 
     private async Task DecrementQuantity(Product product)
     {
+        if (product.QuantityInStock == 0)
+        {
+            return;
+        }
         var updatedProduct = await InventoryService.DecrementProductStockAsync(product);
         products = products.Select(p => p.Id == product.Id ? updatedProduct : p).ToList();
     }
