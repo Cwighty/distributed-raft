@@ -13,8 +13,8 @@ x-node_base: &node_base
 x-node-environment: &node-environment
   ASPNETCORE_URLS: http://+:8080
   ObservabilityOptions__CollectorUrl: http://collector:4317
-  MicroServiceOptions__NodeCount: 3
-  MicroServiceOptions__NodeServiceName: node
+  ApiOptions__NodeCount: 3
+  ApiOptions__NodeServiceName: node
   ApiOptions__NodeServicePort: 8080
   ApiOptions__LogMessageIntervalSeconds: 600
   TZ: America/Denver
@@ -67,7 +67,7 @@ services:
       dockerfile: ./Raft.Gateway/Dockerfile
       target: final
     environment:
-      MicroServiceOptions__NodeCount: 3
+      ApiOptions__NodeCount: 3
       ASPNETCORE_URLS: http://+:8080
       ObservabilityOptions__CollectorUrl: http://collector:4317
       TZ: America/Denver
@@ -82,7 +82,7 @@ services:
     <<: *node_base
     environment:
       <<: *node-environment
-      MicroServiceOptions__Identifier: 1
+      ApiOptions__NodeIdentifier: 1
       ObservabilityOptions__ServiceName: Node1
     profiles:
       - manager
@@ -94,7 +94,7 @@ services:
     <<: *node_base
     environment:
       <<: *node-environment
-      MicroServiceOptions__Identifier: 2
+      ApiOptions__NodeIdentifier: 2
       ObservabilityOptions__ServiceName: Node2
     profiles:
       - manager
@@ -106,7 +106,7 @@ services:
     <<: *node_base
     environment:
       <<: *node-environment
-      MicroServiceOptions__Identifier: 3
+      ApiOptions__NodeIdentifier: 3
       ObservabilityOptions__ServiceName: Node3
     profiles:
       - worker
