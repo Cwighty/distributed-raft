@@ -143,6 +143,7 @@ public class NodeService : BackgroundService
 
         if (votesReceived > options.NodeCount / 2)
         {
+            ResetElectionTimeout();
             State = NodeState.Leader;
             LeaderId = Id;
             Log("Became the Leader.");
@@ -151,6 +152,7 @@ public class NodeService : BackgroundService
         else
         {
             State = NodeState.Follower;
+            ResetElectionTimeout();
             Log("Lost election.");
         }
     }
