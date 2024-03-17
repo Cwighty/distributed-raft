@@ -139,6 +139,7 @@ public class NodeService : BackgroundService
             {
                 Log($"Vote request denied at {nodeAddress}.");
             }
+
         }
 
         if (votesReceived > options.NodeCount / 2)
@@ -147,12 +148,12 @@ public class NodeService : BackgroundService
             State = NodeState.Leader;
             LeaderId = Id;
             Log("Became the Leader.");
-            SendHeartbeats();
+            await SendHeartbeats();
         }
         else
         {
-            State = NodeState.Follower;
             ResetElectionTimeout();
+            State = NodeState.Follower;
             Log("Lost election.");
         }
     }
@@ -219,7 +220,7 @@ public class NodeService : BackgroundService
         }
     }
 
-    public async void SendHeartbeats()
+    public async Task SendHeartbeats()
     {
         if (State != NodeState.Leader)
         {
