@@ -1,4 +1,5 @@
-﻿using Raft.Data.Models;
+﻿using System.Collections.Concurrent;
+using Raft.Data.Models;
 using Raft.Node.Options;
 using Raft.Node.Services;
 
@@ -20,7 +21,7 @@ public class NodeService : BackgroundService
     public List<string> OtherNodeAddresses { get; set; } = new List<string>();
 
     public int Id { get; private set; }
-    public Dictionary<string, VersionedValue<string>> Data { get; set; } = new();
+    public ConcurrentDictionary<string, VersionedValue<string>> Data { get; set; } = new();
     private int currentTerm = 0;
     public int CurrentTerm
     {
@@ -73,6 +74,7 @@ public class NodeService : BackgroundService
                 var lines = File.ReadAllLines(file.FullName);
                 Data[lines[1]] = new VersionedValue<string> { Value = lines[2], Version = index };
             }
+            Log("Recovered logs from disk, committed index: " + CommittedIndex);
             CommittedIndex = logFiles.Count();
         }
 
@@ -81,8 +83,8 @@ public class NodeService : BackgroundService
         {
             if (State == NodeState.Leader)
             {
-                Task.Delay(1000).Wait();
-                SendHeartbeats();
+                await Task.Delay(1000);
+                await SendHeartbeats();
             }
             else if (HasElectionTimedOut())
             {
@@ -232,7 +234,7 @@ public class NodeService : BackgroundService
         }
     }
 
-    private async Task RequestAppendEntriesAsync(string nodeAddress, int currentTerm, int committedIndex, Dictionary<string, VersionedValue<string>> data)
+    private async Task RequestAppendEntriesAsync(string nodeAddress, int currentTerm, int committedIndex, ConcurrentDictionary<string, VersionedValue<string>> data)
     {
 
         var request = new AppendEntriesRequest
@@ -240,7 +242,7 @@ public class NodeService : BackgroundService
             LeaderId = Id,
             Term = currentTerm,
             LeaderCommittedIndex = committedIndex,
-            Entries = data
+            Entries = data.ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
         };
 
         try
@@ -352,7 +354,9 @@ public class NodeService : BackgroundService
         // Commit logs up to the committed index
         if (Directory.Exists(options.EntryLogPath))
         {
-            var logFiles = new DirectoryInfo(options.EntryLogPath).GetFiles().OrderBy(f => f.Name);
+            var logFiles = new DirectoryInfo(options.EntryLogPath)
+                .GetFiles()
+                .OrderBy(f => int.Parse(f.Name.Split('.')[0]));
             foreach (var file in logFiles)
             {
                 Log(file.Name);
@@ -404,10 +408,9 @@ public class NodeService : BackgroundService
 
     public VersionedValue<string> EventualGet(string key)
     {
-        Log($"EventualGet called with key: {key}");
-
         if (Data.ContainsKey(key))
         {
+            Log($"Value found for key {key}: {Data[key].Value}, version: {Data[key].Version}, node: {Id}");
             return Data[key];
         }
 
