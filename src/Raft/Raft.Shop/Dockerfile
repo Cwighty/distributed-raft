@@ -1,5 +1,14 @@
 # syntax=docker/dockerfile:1
 
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS base 
+ENV PATH="${PATH}:/root/.dotnet/tools"
+RUN dotnet tool install --global --no-cache dotnet-subset --version 0.3.2
+
+FROM base as restore
+WORKDIR /src
+COPY . .
+RUN dotnet subset restore Raft.Shop/Raft.Shop/Raft.Shop.csproj --root-directory /src --output /src/restored 
+
 # Comments are provided throughout this file to help you get started.
 # If you need more help, visit the Dockerfile reference guide at
 # https://docs.docker.com/go/dockerfile-reference/
@@ -13,6 +22,8 @@
 
 # Create a stage for building the application.
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+COPY --from=restore /src/restored .
+RUN dotnet restore Raft.Shop/Raft.Shop/Raft.Shop.csproj
 
 COPY . /src
 WORKDIR /src/Raft.Shop/Raft.Shop
@@ -25,7 +36,7 @@ ARG TARGETARCH
 # Leverage a cache mount to /root/.nuget/packages so that subsequent builds don't have to re-download packages.
 # If TARGETARCH is "amd64", replace it with "x64" - "x64" is .NET's canonical name for this and "amd64" doesn't
 #   work in .NET 6.0.
-RUN dotnet publish -a ${TARGETARCH/amd64/x64} --use-current-runtime -o /app
+RUN dotnet publish -a ${TARGETARCH/amd64/x64} --use-current-runtime -o /app --no-restore
 
 # If you need to enable globalization and time zones:
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/enable-globalization.md
@@ -43,10 +54,9 @@ RUN dotnet publish -a ${TARGETARCH/amd64/x64} --use-current-runtime -o /app
 
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS development
-# https://stackoverflow.com/questions/68597982/net-package-restore-in-docker-cached-separately-from-build
-RUN --mount=type=bind,target=/docker-context \
-    cd /docker-context/; \
-    find ./ -mindepth 0 -maxdepth 4 \( -name "*.sln" -o -name "*.csproj" -o -iname "nuget.config" \) -exec cp --parents "{}" /src \;
+COPY --from=restore /src/restored .
+RUN dotnet restore Raft.Shop/Raft.Shop/Raft.Shop.csproj
+
 COPY . /src
 WORKDIR /src/Raft.Shop/Raft.Shop
 CMD dotnet watch run --no-launch-profile --non-interactive

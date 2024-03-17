@@ -24,6 +24,7 @@ if (builder.Environment.IsProduction())
     // remove all http client request logging
     builder.Services.RemoveAll<IHttpMessageHandlerBuilderFilter>();
 }
+
 builder.Services.AddSingleton<NodeService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<NodeService>());
 

@@ -11,12 +11,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Dotnet
-        uses: actions/setup-dotnet@v2
-        with:
-          dotnet-version: "8.0"
-
-      - name: Restore dependencies and run tests
+      - name: Test
         run: |
           cd src/Raft
-          dotnet test
+          docker build -t raft_tests .
+          docker run -i --rm raft_tests dotnet test --no-restore
