@@ -6,18 +6,15 @@
 @inject IAccountService AccountService
 
 <h3>Account</h3>
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-6">
-            <div class="mb-3">
-                <label for="usernameInput" class="form-label">Username</label>
-                <input type="text" class="form-control" id="usernameInput" @bind="username" @onfocus="Clear" @onblur="GetBalance">
-            </div>
-        </div>
-    </div>
+
+<div class="text-center mb-4">
+    <label for="usernameInput" class="form-label">Username</label>
+    <input type="text" class="form-control" id="usernameInput" @bind="username" @onfocus="Clear" @onblur="GetBalance" style="max-width: 500px; margin: auto;">
+</div>
+<div class="mt-4">
     @if (!string.IsNullOrEmpty(username))
     {
-        <div class="card col-md-6">
+        <div class="card col-xl-4 col-md-6">
             <div class="card-header">
                 <div class="row mt-3">
                     <div class="col-md-6">

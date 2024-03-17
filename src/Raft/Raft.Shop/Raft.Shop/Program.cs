@@ -19,6 +19,7 @@ builder.Services.AddHttpClient("GatewayClient", client => client.BaseAddress = n
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("GatewayClient"));
 
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
 
 var app = builder.Build();
 

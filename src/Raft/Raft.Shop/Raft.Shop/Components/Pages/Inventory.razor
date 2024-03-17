@@ -1,6 +1,8 @@
 ﻿@rendermode RenderMode.InteractiveServer
 @page "/inventory"
 @using Data.Models
+@using Data.Services
+@inject IInventoryService InventoryService
 
 <h3>Inventory</h3>
 
@@ -26,9 +28,27 @@ else
                     <h5 class="card-title mb-2">@product.Name</h5>
                     <div class="d-flex justify-content-between">
                         <h6 class="card-subtitle mb-2 text-muted">Price: @product.Price.ToString("C")</h6>
-                        <h6 class="card-subtitle mb-2 text-mutedd">Qty: 0</h6>
                     </div>
-                    <p class="card-text">@product.Description</p>
+                    <div class="card-text">
+                        @if(showDescription.TryGetValue(product.Id, out var show) && show)
+                        {
+                            @product.Description
+                            <button class="btn btn-link" @onclick="() => ToggleDescription(product)">Read less</button>
+                        }
+                        else if (product.Description.Length > 100)
+                        {
+                            <div class="text-truncate">@product.Description.Substring(0, 100)</div>
+                            <button class="btn btn-link ms-0 ps-0" @onclick="() => ToggleDescription(product)">Read more</button>
+                        }
+                    </div>
+                    <div class="mt-2">
+                        <h5 class="">In Stock:</h5>
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-primary btn-sm fs-4 px-3" @onclick="() => DecrementQuantity(product)">-</button>
+                            <p class="fs-4 my-auto">@product.QuantityInStock</p>
+                            <button class="btn btn-primary btn-sm fs-4 px-3" @onclick="() => IncreaseQuantity(product)">+</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         }
@@ -38,36 +58,65 @@ else
 @code {
     private List<Product> products = new List<Product>();
     private string filter = string.Empty;
+    private Dictionary<int, bool> showDescription = new Dictionary<int, bool>();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         products = new List<Product>
         {
-            new Product { Id = 1, Name = "Corne Keyboard", Description = 
-@"Layout: Split ergonomic with 3x6 column staggered keys per side and 3 thumb keys.
-Features: OLED display support, per-key RGB backlighting, hot-swappable PCB options.
-Connectivity: Wired (USB-C) or wireless options depending on the build.
-Programmability: Fully programmable via QMK or ZMK firmware."},
-            new Product { Id = 2, Name = "Lily58 Keyboard", Description =
-@"Layout: Split with 6x4 keys per side and 4 thumb keys.
-Features: Supports OLED displays and RGB underglow, hot-swappable PCB options.
-Connectivity: Wired (USB-C).
-Programmability: Fully programmable via QMK firmware."},
-            new Product { Id = 3, Name = "Sofle Keyboard", Description =
-@"Layout: Split ergonomic with 6x4 grid and 5 thumb keys per side.
-Features: Supports for rotary encoders and OLED screens, RGB underglow.
-Connectivity: Wired (USB-C).
-Programmability: Fully programmable via QMK firmware."},
-            new Product { Id = 4, Name = "Iris Keyboard", Description =
-@"Layout: Split ergonomic with 5x6 grid and 3 thumb keys, optional 1-2 extra keys per hand.
-Features: Optional OLED display, RGB underglow.
-Connectivity: Wired (USB-C).
-Programmability: Fully programmable via QMK firmware."},
-            new Product { Id = 5, Name = "Kyria Keyboard", Description =
-@"Layout: Split ergonomic with 5x6 grid and 3 thumb keys per side.
-Features: OLED display support, options for rotary encoders, RGB underglow.
-Connectivity: Wired (USB-C) or Bluetooth options.
-Programmability: Fully programmable via QMK or ZMK firmware for builds."},
+            new Product(1, "Corne Keyboard", @"Layout: Split ergonomic with 3x6 column staggered keys per side and 3 thumb keys.
+            Features: OLED display support, per-key RGB backlighting, hot-swappable PCB options.
+            Connectivity: Wired (USB-C) or wireless options depending on the build.
+            Programmability: Fully programmable via QMK or ZMK firmware."),
+            new Product(2, "Lily58 Keyboard", @"Layout: Split with 6x4 keys per side and 4 thumb keys.
+            Features: Supports OLED displays and RGB underglow, hot-swappable PCB options.
+            Connectivity: Wired (USB-C).
+            Programmability: Fully programmable via QMK firmware."),
+            new Product(3, "Sofle Keyboard", @"Layout: Split ergonomic with 6x4 grid and 5 thumb keys per side.
+            Features: Supports for rotary encoders and OLED screens, RGB underglow.
+            Connectivity: Wired (USB-C).
+            Programmability: Fully programmable via QMK firmware."),
+            new Product(4, "Iris Keyboard", @"Layout: Split ergonomic with 5x6 grid and 3 thumb keys, optional 1-2 extra keys per hand.
+            Features: Optional OLED display, RGB underglow.
+            Connectivity: Wired (USB-C).
+            Programmability: Fully programmable via QMK firmware."),
+            new Product(5, "Kyria Keyboard", @"Layout: Split ergonomic with 5x6 grid and 3 thumb keys per side.
+            Features: OLED display support, options for rotary encoders, RGB underglow.
+            Connectivity: Wired (USB-C) or Bluetooth options.
+            Programmability: Fully programmable via QMK or ZMK firmware for builds."),
         };
+
+        var productsWithQuantity = new List<Product>();
+        foreach (var product in products)
+        {
+            var productWithQuantity = await InventoryService.GetCurrentStockAsync(product);
+            productsWithQuantity.Add(productWithQuantity);
+        }
+
+        products = productsWithQuantity;
+    }
+
+    private void ToggleDescription(Product product)
+    {
+        if (showDescription.TryGetValue(product.Id, out var show))
+        {
+            showDescription[product.Id] = !show;
+        }
+        else
+        {
+            showDescription.Add(product.Id, true);
+        }
+    }
+
+    private async Task IncreaseQuantity(Product product)
+    {
+        var updatedProduct = await InventoryService.IncrementProductStockAsync(product);
+        products = products.Select(p => p.Id == product.Id ? updatedProduct : p).ToList();
+    }
+
+    private async Task DecrementQuantity(Product product)
+    {
+        var updatedProduct = await InventoryService.DecrementProductStockAsync(product);
+        products = products.Select(p => p.Id == product.Id ? updatedProduct : p).ToList();
     }
 }
