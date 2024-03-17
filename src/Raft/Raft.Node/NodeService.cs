@@ -50,7 +50,7 @@ public class NodeService : BackgroundService
         this.options = options;
         this.nodeClient = nodeClient;
         Id = options.NodeIdentifier;
-        electionTimeout = random.Next(150, 300);
+        electionTimeout = random.Next(4000, 8000);
         for (int i = 1; i <= options.NodeCount; i++)
         {
             if (i == options.NodeIdentifier)
@@ -81,7 +81,7 @@ public class NodeService : BackgroundService
         {
             if (State == NodeState.Leader)
             {
-                Task.Delay(100).Wait();
+                Task.Delay(1000).Wait();
                 SendHeartbeats();
             }
             else if (HasElectionTimedOut())
@@ -186,13 +186,16 @@ public class NodeService : BackgroundService
 
         State = NodeState.Follower;
         VotedFor = candidateId;
-        ResetElectionTimeout();
         Log($"Voted for node {candidateId} in election term {theirTerm}.");
         return true;
     }
 
     private bool HasElectionTimedOut()
     {
+        if (State == NodeState.Leader)
+        {
+            return false;
+        }
         return DateTime.UtcNow - lastHeartbeatReceived > TimeSpan.FromMilliseconds(electionTimeout);
     }
 
