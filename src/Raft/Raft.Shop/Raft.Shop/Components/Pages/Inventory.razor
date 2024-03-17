@@ -1,5 +1,72 @@
-﻿<h3>Inventory</h3>
+﻿@rendermode RenderMode.InteractiveServer
+@page "/inventory"
+@using Data.Models
+
+<h3>Inventory</h3>
+
+@if (products == null || !products.Any())
+{
+    <div class="alert alert-info" role="alert">
+        Loading products...
+    </div>
+} 
+else 
+{
+    <table class="table table-striped table-hover">
+        <thead class="thead-dark">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Qty</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in products)
+            {
+                <tr>
+                    <td>@product.Id</td>
+                    <td>@product.Name</td>
+                    <td>@product.Description</td>
+                    <td>0</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
 
 @code {
-
+    private List<Product> products = new List<Product>();
+    
+    protected override void OnInitialized()
+    {
+        products = new List<Product>
+        {
+            new Product { Id = 1, Name = "Corne Keyboard", Description = 
+@"Layout: Split ergonomic with 3x6 column staggered keys per side and 3 thumb keys.
+Features: OLED display support, per-key RGB backlighting, hot-swappable PCB options.
+Connectivity: Wired (USB-C) or wireless options depending on the build.
+Programmability: Fully programmable via QMK or ZMK firmware."},
+            new Product { Id = 2, Name = "Lily58 Keyboard", Description =
+@"Layout: Split with 6x4 keys per side and 4 thumb keys.
+Features: Supports OLED displays and RGB underglow, hot-swappable PCB options.
+Connectivity: Wired (USB-C).
+Programmability: Fully programmable via QMK firmware."},
+            new Product { Id = 3, Name = "Sofle Keyboard", Description =
+@"Layout: Split ergonomic with 6x4 grid and 5 thumb keys per side.
+Features: Supports for rotary encoders and OLED screens, RGB underglow.
+Connectivity: Wired (USB-C).
+Programmability: Fully programmable via QMK firmware."},
+            new Product { Id = 4, Name = "Iris Keyboard", Description =
+@"Layout: Split ergonomic with 5x6 grid and 3 thumb keys, optional 1-2 extra keys per hand.
+Features: Optional OLED display, RGB underglow.
+Connectivity: Wired (USB-C).
+Programmability: Fully programmable via QMK firmware."},
+            new Product { Id = 5, Name = "Kyria Keyboard", Description =
+@"Layout: Split ergonomic with 5x6 grid and 3 thumb keys per side.
+Features: OLED display support, options for rotary encoders, RGB underglow.
+Connectivity: Wired (USB-C) or Bluetooth options.
+Programmability: Fully programmable via QMK or ZMK firmware for builds."},
+        };
+    }
 }
