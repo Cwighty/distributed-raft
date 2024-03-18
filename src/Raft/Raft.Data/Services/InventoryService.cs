@@ -25,7 +25,7 @@ public class InventoryService : IInventoryService
     {
         var key = GetProductStockKey(product);
 
-        var response = await storageService.EventualGet(key); 
+        var response = await storageService.EventualGet(key);
 
         if (String.IsNullOrEmpty(response!.Value))
             return new Product(product.Id, product.Name, product.Description, product.Price, 0);
@@ -40,12 +40,12 @@ public class InventoryService : IInventoryService
 
     public async Task<Product> IncrementProductStockAsync(Product product)
     {
-       var reducer = new Func<string, string>(oldValue =>
-        {
-            var quantity = int.Parse(oldValue);
-            quantity++;
-            return quantity.ToString();
-        });
+        var reducer = new Func<string, string>(oldValue =>
+         {
+             var quantity = int.Parse(oldValue);
+             quantity++;
+             return quantity.ToString();
+         });
 
         var key = GetProductStockKey(product);
         await storageService.IdempodentReduceUntilSuccess(key, product.QuantityInStock.ToString(), reducer);

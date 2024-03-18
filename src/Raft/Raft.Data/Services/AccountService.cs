@@ -40,7 +40,7 @@ public class AccountService : IAccountService
     {
         var key = GetAccountBalanceKey(username);
 
-        var response = await storageService.EventualGet(key); 
+        var response = await storageService.EventualGet(key);
 
         if (String.IsNullOrEmpty(response!.Value))
             return 0;
