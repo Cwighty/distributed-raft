@@ -63,7 +63,7 @@ public class StorageService : IStorageService
             {
                 await ReduceValue(key, oldValue, reducer);
             }
-            catch
+            catch (HttpRequestException)
             {
                 await Task.Delay(delay);
                 var refetchedValue = await EventualGet(key);
