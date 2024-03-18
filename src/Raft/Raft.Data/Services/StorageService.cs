@@ -62,6 +62,7 @@ public class StorageService : IStorageService
             try
             {
                 await ReduceValue(key, oldValue, reducer);
+                return;
             }
             catch (HttpRequestException)
             {
