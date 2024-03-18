@@ -12,10 +12,12 @@ public interface IAccountService
 public class AccountService : IAccountService
 {
     private readonly HttpClient client;
+    private readonly IStorageService storageService;
 
-    public AccountService(HttpClient client)
+    public AccountService(HttpClient client, IStorageService storageService)
     {
         this.client = client;
+        this.storageService = storageService;
     }
 
 
@@ -23,23 +25,22 @@ public class AccountService : IAccountService
     {
         var key = GetAccountBalanceKey(username);
         var currentBalance = await GetBalanceAsync(username);
-        var newBalance = currentBalance + amount;
 
-        var request = new CompareAndSwapRequest
+        var reducer = new Func<string, string>(oldValue =>
         {
-            Key = key,
-            OldValue = currentBalance.ToString(),
-            NewValue = newBalance.ToString()
-        };
+            var balance = int.Parse(oldValue);
+            balance += (int)amount;
+            return balance.ToString();
+        });
 
-        await client.PostAsJsonAsync($"gateway/Storage/CompareAndSwap", request);
+        await storageService.IdempodentReduceUntilSuccess(key, currentBalance.ToString(), reducer);
     }
 
     public async Task<int> GetBalanceAsync(string username)
     {
         var key = GetAccountBalanceKey(username);
 
-        var response = await client.GetFromJsonAsync<VersionedValue<string>>($"gateway/Storage/EventualGet?key={key}");
+        var response = await storageService.EventualGet(key); 
 
         if (String.IsNullOrEmpty(response!.Value))
             return 0;

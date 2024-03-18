@@ -13,31 +13,19 @@ public interface IInventoryService
 public class InventoryService : IInventoryService
 {
     private readonly HttpClient client;
+    private readonly IStorageService storageService;
 
-    public InventoryService(HttpClient client)
+    public InventoryService(HttpClient client, IStorageService storageService)
     {
         this.client = client;
-    }
-
-
-    private async Task<Product> SetCurrentStockAsync(Product product, int newStockValue)
-    {
-        var request = new CompareAndSwapRequest
-        {
-            Key = GetProductStockKey(product),
-            OldValue = product.QuantityInStock.ToString(),
-            NewValue = newStockValue.ToString()
-        };
-        var response = await client.PostAsJsonAsync($"gateway/Storage/CompareAndSwap", request);
-        response.EnsureSuccessStatusCode();
-        return new Product(product.Id, product.Name, product.Description, product.Price, newStockValue);
+        this.storageService = storageService;
     }
 
     public async Task<Product> GetCurrentStockAsync(Product product)
     {
         var key = GetProductStockKey(product);
 
-        var response = await client.GetFromJsonAsync<VersionedValue<string>>($"gateway/Storage/EventualGet?key={key}");
+        var response = await storageService.EventualGet(key); 
 
         if (String.IsNullOrEmpty(response!.Value))
             return new Product(product.Id, product.Name, product.Description, product.Price, 0);
@@ -52,74 +40,34 @@ public class InventoryService : IInventoryService
 
     public async Task<Product> IncrementProductStockAsync(Product product)
     {
-        try
+       var reducer = new Func<string, string>(oldValue =>
         {
-            return await SetCurrentStockAsync(product, product.QuantityInStock + 1);
-        }
-        catch
-        {
-            // Retry logic
-            int retryCount = 5;
-            int currentRetry = 0;
-            int delay = 1000; // milliseconds
+            var quantity = int.Parse(oldValue);
+            quantity++;
+            return quantity.ToString();
+        });
 
-            while (currentRetry < retryCount)
-            {
-                try
-                {
-                    product = await GetCurrentStockAsync(product);
-                    return await SetCurrentStockAsync(product, product.QuantityInStock + 1);
-                }
-                catch
-                {
-                    // Increment the retry count
-                    currentRetry++;
+        var key = GetProductStockKey(product);
+        await storageService.IdempodentReduceUntilSuccess(key, product.QuantityInStock.ToString(), reducer);
+        var optimisticProduct = new Product(product.Id, product.Name, product.Description, product.Price, product.QuantityInStock + 1);
 
-                    // Delay before retrying
-                    await Task.Delay(delay);
-                }
-            }
-
-            throw new Exception("Failed to set current stock");
-        }
+        return optimisticProduct;
     }
 
     public async Task<Product> DecrementProductStockAsync(Product product)
     {
-        if (product.QuantityInStock == 0)
-            throw new InvalidOperationException("Product is out of stock");
-        try
+        var reducer = new Func<string, string>(oldValue =>
         {
-            return await SetCurrentStockAsync(product, product.QuantityInStock - 1);
-        }
-        catch
-        {
-            // Retry logic
-            int retryCount = 5;
-            int currentRetry = 0;
-            int delay = 1000; // milliseconds
+            var quantity = int.Parse(oldValue);
+            quantity--;
+            return quantity.ToString();
+        });
 
-            while (currentRetry < retryCount)
-            {
-                try
-                {
-                    product = await GetCurrentStockAsync(product);
-                    return await SetCurrentStockAsync(product, product.QuantityInStock - 1);
-                }
-                catch
-                {
-                    // Increment the retry count
-                    currentRetry++;
-
-                    // Delay before retrying
-                    await Task.Delay(delay);
-                }
-            }
-
-            throw new Exception("Failed to set current stock");
-        }
+        var key = GetProductStockKey(product);
+        await storageService.IdempodentReduceUntilSuccess(key, product.QuantityInStock.ToString(), reducer);
+        var optimisticProduct = new Product(product.Id, product.Name, product.Description, product.Price, product.QuantityInStock - 1);
+        return optimisticProduct;
     }
-
 
     private string GetProductStockKey(Product product)
     {

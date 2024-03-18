@@ -63,7 +63,8 @@
     private async Task Deposit()
     {
         await AccountService.DepositAsync(username, amount);
-        await GetBalance();
+        balance = balance + amount; // optimistic update
+        StateHasChanged();
         amount = 0;
     }
 
