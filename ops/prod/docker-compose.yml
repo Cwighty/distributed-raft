@@ -16,7 +16,7 @@ x-node-environment: &node-environment
   ApiOptions__NodeCount: 3
   ApiOptions__NodeServiceName: node
   ApiOptions__NodeServicePort: 8080
-  ApiOptions__LogMessageIntervalSeconds: 600
+  ApiOptions__LogMessageIntervalSeconds: 10
   TZ: America/Denver
 
 services:
