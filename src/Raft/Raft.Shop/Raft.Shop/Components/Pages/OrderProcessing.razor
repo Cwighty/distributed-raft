@@ -1,0 +1,79 @@
+@page "/processing"
+@using Raft.Data.Services;
+@using Raft.Data.Models;
+@inject IOrderService OrderService;
+
+<PageTitle>Order Processing</PageTitle>
+
+<h3>Orders</h3>
+
+@if (orders == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    @if (orders.Count == 0)
+    {
+        <p><em>No orders found</em></p>
+    }
+    else
+    {
+        <h4>Pending</h4>
+        @if (orders.Any(o => o.Status == OrderStatus.Pending))
+        {
+            <p><em>No pending orders</em></p>
+        }
+        @foreach (var order in orders.Where(o => o.Status == OrderStatus.Pending))
+        {
+            <div>
+                <p>@order.OrderInfo?.Username</p>
+                @foreach (var item in order.OrderInfo?.Products ?? new List<Product>())
+                {
+                    <p>@item.Name</p>
+                }
+                <button @onclick="() => ProcessOrder(order.Id)">Process</button>
+            </div>
+        }
+
+        <h4>Processed</h4>
+        @if (orders.Any(o => o.Status == OrderStatus.Processed))
+        {
+            <p><em>No processed orders</em></p>
+        }
+        @foreach (var order in orders.Where(o => o.Status == OrderStatus.Processed))
+        {
+            <div>
+                <p>@order.Id</p>
+                <p>@order.OrderInfo?.Username</p>
+            </div>
+        }
+
+        <h4>Failed</h4>
+        @if (orders.Any(o => o.Status == OrderStatus.Failed))
+        {
+            <p><em>No failed orders</em></p>
+        }
+        @foreach (var order in orders.Where(o => o.Status == OrderStatus.Failed))
+        {
+            <div>
+                <p>@order.Id</p>
+                <p>@order.OrderInfo?.Username</p>
+            </div>
+        }
+    }
+}
+
+@code {
+
+    private List<Order> orders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        orders = await OrderService.GetOrdersAsync();
+    }
+
+    private async Task ProcessOrder(Guid orderId)
+    {
+    }
+}

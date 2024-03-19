@@ -399,7 +399,7 @@ public class NodeService : BackgroundService
                 }
                 else
                 {
-                    throw new Exception("Value not found.");
+                    return new VersionedValue<string> { Value = String.Empty, Version = 0 };
                 }
             }
         }
