@@ -1,0 +1,36 @@
+@using Raft.Data.Models
+
+<div class="card">
+    <div class="card-header">
+        <h5>Order Details</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>Order ID:</strong> @OrderId</p>
+        <p><strong>Username:</strong> @Username</p>
+        <h6>Products:</h6>
+        <ul class="list-group">
+            @foreach (var product in Products)
+            {
+                <li class="list-group-item">@product.Name - @product.Price</li>
+            }
+        </ul>
+        <p><strong>Total: </strong> @Products.Sum(p => p.Price)</p>
+        <div class="d-flex justify-content-end">
+            <button class="btn btn-primary" >@ActionName</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int OrderId { get; set; }
+
+    [Parameter]
+    public string Username { get; set; }
+
+    [Parameter]
+    public List<Product> Products { get; set; }
+
+    [Parameter]
+    public string ActionName { get; set; }
+}

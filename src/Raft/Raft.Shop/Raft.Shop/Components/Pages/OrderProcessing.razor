@@ -6,7 +6,7 @@
 <PageTitle>Order Processing</PageTitle>
 
 <h3>Orders</h3>
-
+<hr />
 @if (orders == null)
 {
     <p><em>Loading...</em></p>
@@ -19,7 +19,7 @@ else
     }
     else
     {
-        <h4>Pending</h4>
+        <h4 class="mb-2">Pending</h4>
         @if (orders.Any(o => o.Status == OrderStatus.Pending))
         {
             <p><em>No pending orders</em></p>
@@ -36,7 +36,7 @@ else
             </div>
         }
 
-        <h4>Processed</h4>
+        <h4 class="mb-2">Processed</h4>
         @if (orders.Any(o => o.Status == OrderStatus.Processed))
         {
             <p><em>No processed orders</em></p>
@@ -49,7 +49,7 @@ else
             </div>
         }
 
-        <h4>Failed</h4>
+        <h4 class="mb-2">Failed</h4>
         @if (orders.Any(o => o.Status == OrderStatus.Failed))
         {
             <p><em>No failed orders</em></p>
