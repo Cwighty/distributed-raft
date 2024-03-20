@@ -52,44 +52,54 @@ else
 }
 
 <h4 class="mt-3">Cart</h4>
-@if (orderInfo.Products == null || !orderInfo.Products.Any())
+@if (orderPlaced)
 {
-    <div class="alert alert-info" role="alert">
-        Add products to your cart by clicking the "Add to cart" button on a product.
+    <div class="alert alert-success d-flex justify-content-between" role="alert">
+        Order placed successfully!
+        <button class="btn btn-close" @onclick="ConfirmOrderPlaced"></button>
     </div>
 }
 else
 {
-    <div class="d-flex flex-wrap justify-content-start">
-        <div class="card m-2" style="width: 18rem;">
-            <div class="card-body">
-                <div>
-                    <label for="username" class="form-label">Name</label>
-                    <input type="text" @bind-value="@orderInfo.Username" @bind-value:event="oninput" class="form-control" placeholder="Required" style="max-width: 500px; margin: auto;">
-                </div>
-            <div class="mt-2 d-flex justify-content-between">
-                <div class="card-subtitle my-auto text-muted">
-                    Total: @orderInfo.Products.Sum(p => p.Price).ToString("C")
-                </div>
-                <button class="btn btn-success" disabled=@(String.IsNullOrEmpty(orderInfo.Username)) @onclick="() => OrderService.CreateOrderAsync(orderInfo)">Place order</button>
-            </div>
-            </div>
+    @if (orderInfo.Products == null || !orderInfo.Products.Any())
+    {
+        <div class="alert alert-info" role="alert">
+            Add products to your cart by clicking the "Add to cart" button on a product.
         </div>
-        @foreach (var product in orderInfo.Products.Where(p => p.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)))
-        {
+    }
+    else
+    {
+        <div class="d-flex flex-wrap justify-content-start">
             <div class="card m-2" style="width: 18rem;">
                 <div class="card-body">
-                    <h5 class="card-title mb-2">@product.Name</h5>
-                    <div class="d-flex justify-content-between">
-                        <h6 class="card-subtitle mb-2 text-muted">Price: @product.Price.ToString("C")</h6>
+                    <div>
+                        <label for="username" class="form-label">Name</label>
+                        <input type="text" @bind-value="@orderInfo.Username" @bind-value:event="oninput" class="form-control" placeholder="Required" style="max-width: 500px; margin: auto;">
                     </div>
-                    <div class="mt-2 d-flex justify-content-end">
-                        <button class="btn btn-primary" @onclick="() => RemoveFromCart(product)">Remove</button>
+                <div class="mt-2 d-flex justify-content-between">
+                    <div class="card-subtitle my-auto text-muted">
+                        Total: @orderInfo.Products.Sum(p => p.Price).ToString("C")
                     </div>
+                    <button class="btn btn-success" disabled=@(String.IsNullOrEmpty(orderInfo.Username)) @onclick="PlaceOrder">Place order</button>
+                </div>
                 </div>
             </div>
-        }
-    </div>
+            @foreach (var product in orderInfo.Products.Where(p => p.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)))
+            {
+                <div class="card m-2" style="width: 18rem;">
+                    <div class="card-body">
+                        <h5 class="card-title mb-2">@product.Name</h5>
+                        <div class="d-flex justify-content-between">
+                            <h6 class="card-subtitle mb-2 text-muted">Price: @product.Price.ToString("C")</h6>
+                        </div>
+                        <div class="mt-2 d-flex justify-content-end">
+                            <button class="btn btn-primary" @onclick="() => RemoveFromCart(product)">Remove</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
 }
 
 @code {
@@ -98,6 +108,7 @@ else
     private OrderInfo orderInfo = new OrderInfo();
     private string filter = "";
     private Dictionary<int, bool> showDescription = new Dictionary<int, bool>();
+    private bool orderPlaced = false;
 
     protected override void OnInitialized()
     {
@@ -126,5 +137,17 @@ else
     {
         orderInfo.Products.Remove(product);
         StateHasChanged();
+    }
+
+    private async Task PlaceOrder()
+    {
+        await OrderService.CreateOrderAsync(orderInfo);
+        orderInfo = new OrderInfo();
+        orderPlaced = true;
+    }
+
+    private void ConfirmOrderPlaced()
+    {
+        orderPlaced = false;
     }
 }
