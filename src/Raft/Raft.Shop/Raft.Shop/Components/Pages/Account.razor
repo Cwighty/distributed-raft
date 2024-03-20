@@ -9,7 +9,7 @@
 <hr/>
 <div class="text-center mb-4">
     <label for="usernameInput" class="form-label">Username</label>
-    <input type="text" class="form-control" id="usernameInput" @bind="username" @onfocus="Clear" @onblur="GetBalance" style="max-width: 500px; margin: auto;">
+    <input type="text" class="form-control" id="usernameInput" @bind="username" @onfocus="Clear" @onblur="GetBalance" placeholder="Enter name to see account" style="max-width: 500px; margin: auto;">
 </div>
 <div class="mt-4">
     @if (!string.IsNullOrEmpty(username))

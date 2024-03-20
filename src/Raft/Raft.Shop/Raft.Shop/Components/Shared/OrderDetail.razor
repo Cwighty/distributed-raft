@@ -1,36 +1,33 @@
 @using Raft.Data.Models
 
 <div class="card">
-    <div class="card-header">
-        <h5>Order Details</h5>
-    </div>
     <div class="card-body">
+        <p><strong>Username:</strong> @OrderInfo.Username</p>
         <p><strong>Order ID:</strong> @OrderId</p>
-        <p><strong>Username:</strong> @Username</p>
         <h6>Products:</h6>
         <ul class="list-group">
-            @foreach (var product in Products)
+            @foreach (var product in OrderInfo.Products)
             {
-                <li class="list-group-item">@product.Name - @product.Price</li>
+                <li class="list-group-item">@product.Name - @product.Price.ToString("C")</li>
             }
         </ul>
-        <p><strong>Total: </strong> @Products.Sum(p => p.Price)</p>
-        <div class="d-flex justify-content-end">
-            <button class="btn btn-primary" >@ActionName</button>
+        <div class="d-flex justify-content-between mt-2">
+            <div class="my-auto"><strong>Total: </strong> @OrderInfo.Products.Sum(p => p.Price).ToString("C")</div>
+            @if (Action != null)
+            {
+                @Action
+            }
         </div>
     </div>
 </div>
 
 @code {
     [Parameter]
-    public int OrderId { get; set; }
+    public Guid OrderId { get; set; }
+
+    [Parameter, EditorRequired]
+    public OrderInfo OrderInfo { get; set; }
 
     [Parameter]
-    public string Username { get; set; }
-
-    [Parameter]
-    public List<Product> Products { get; set; }
-
-    [Parameter]
-    public string ActionName { get; set; }
+    public RenderFragment? Action {get; set;}
 }
