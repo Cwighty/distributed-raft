@@ -8,15 +8,21 @@ public interface IOrderService
     Task<List<Order>> GetOrdersAsync();
     Task<Order?> GetOrderAsync(Guid orderId);
     Task<Guid> CreateOrderAsync(OrderInfo orderInfo);
+    Task<bool> ProcessOrderAsync(Guid orderId);
 }
 
 public class OrderService : IOrderService
 {
     private readonly IStorageService storageService;
+    private readonly IAccountService accountService;
+    private readonly IInventoryService inventoryService;
+    private string processorId = Guid.NewGuid().ToString();
 
-    public OrderService(IStorageService storageService)
+    public OrderService(IStorageService storageService, IAccountService accountService, IInventoryService inventoryService)
     {
         this.storageService = storageService;
+        this.accountService = accountService;
+        this.inventoryService = inventoryService;
     }
 
     public async Task<List<Order>> GetOrdersAsync()
@@ -80,9 +86,7 @@ public class OrderService : IOrderService
         var orderInfoValue = JsonSerializer.Serialize(orderInfo);
         await storageService.IdempodentReduceUntilSuccess(orderInfoKey, "", (_) => orderInfoValue);
 
-        var orderStatusKey = GetOrderStatusKey(orderId);
-        var orderStatusValue = JsonSerializer.Serialize(OrderStatus.Pending);
-        await storageService.IdempodentReduceUntilSuccess(orderStatusKey, "", (_) => orderStatusValue);
+        await UpdateOrderStatusAsync(orderId, "pending");
 
         return orderId;
     }
@@ -112,13 +116,118 @@ public class OrderService : IOrderService
         return JsonSerializer.Deserialize<OrderInfo>(orderInfoVersionedValue.Value);
     }
 
-    private async Task<OrderStatus?> GetOrderStatusAsync(Guid orderId)
+    private async Task<string> GetOrderStatusAsync(Guid orderId)
     {
         var orderStatusKey = GetOrderStatusKey(orderId);
         var orderStatusVersionedValue = await storageService.StrongGet(orderStatusKey);
-        if (String.IsNullOrEmpty(orderStatusVersionedValue.Value))
-            return null;
-        return JsonSerializer.Deserialize<OrderStatus>(orderStatusVersionedValue.Value);
+        return orderStatusVersionedValue.Value;
+    }
+
+    public async Task<bool> ProcessOrderAsync(Guid orderId)
+    {
+        var processorId = Guid.NewGuid().ToString();
+        var order = await GetOrderAsync(orderId);
+        if (order == null || order.OrderInfo == null)
+        {
+            return false;
+        }
+
+        bool alreadyProcessed = false;
+        bool isBalanceUpdated = false;
+        int isStockUpdated = 0;
+        bool isVendorBalanceUpdated = false;
+
+        try
+        {
+            // Step 1: Deduct User's Balance
+            Console.WriteLine($"Checking balance for {order.OrderInfo.Username}");
+            var userBalance = await accountService.GetBalanceAsync(order.OrderInfo.Username);
+            if (userBalance >= order.OrderInfo.GetTotal())
+            {
+                await accountService.WithdrawAsync(order.OrderInfo.Username, order.OrderInfo.GetTotal());
+                isBalanceUpdated = true;
+            }
+            else
+            {
+                throw new Exception("Insufficient funds.");
+            }
+
+            // Step 2: Deduct Stock for Each Product
+            Console.WriteLine("Checking stock for each product");
+            foreach (var item in order.OrderInfo.Products)
+            {
+                var product = await inventoryService.GetCurrentStockAsync(item);
+                if (product.QuantityInStock >= 1)
+                {
+                    await inventoryService.DecrementProductStockAsync(item);
+                }
+                else
+                {
+                    throw new Exception("Insufficient stock.");
+                }
+                isStockUpdated += 1;
+            }
+
+            // Step 3: Increase Vendor's Balance
+            Console.WriteLine("Depositing to vendor's account");
+            await accountService.DepositAsync("vendor", order.OrderInfo.GetTotal());
+            isVendorBalanceUpdated = true;
+
+            // Step 4: Update Order Status
+            Console.WriteLine("Updating order status");
+            var orderStatus = await GetOrderStatusAsync(orderId);
+            Console.WriteLine($"Order status: {orderStatus}");
+            if (orderStatus == "pending")
+            {
+                await UpdateOrderStatusAsync(orderId, $"processed-by-{processorId}");
+            }
+            else
+            {
+                alreadyProcessed = true;
+                throw new Exception("Order already processed.");
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing order: {ex.Message}");
+            if (isVendorBalanceUpdated)
+            {
+                Console.WriteLine("UNDO: Withdrawing from vendor's account");
+                await accountService.WithdrawAsync("vendor", order.OrderInfo.GetTotal());
+            }
+            if (isStockUpdated > 0)
+            {
+                Console.WriteLine("UNDO: Incrementing stock for each product");
+                foreach (var item in order.OrderInfo.Products)
+                {
+                    if (isStockUpdated == 0)
+                        break;
+                    await inventoryService.IncrementProductStockAsync(item);
+                    isStockUpdated -= 1;
+                }
+            }
+            if (isBalanceUpdated)
+            {
+                Console.WriteLine("UNDO: Depositing to user's account");
+                await accountService.DepositAsync(order.OrderInfo.Username, order.OrderInfo.GetTotal());
+            }
+
+            if (!alreadyProcessed)
+            {
+                Console.WriteLine("Failing order");
+                await UpdateOrderStatusAsync(orderId, $"rejected-by-{processorId}");
+            }
+
+            return false;
+        }
+    }
+
+    private async Task UpdateOrderStatusAsync(Guid orderId, string status)
+    {
+        var orderStatusKey = GetOrderStatusKey(orderId);
+        await storageService.IdempodentReduceUntilSuccess(orderStatusKey, "", (_) => status);
     }
 
     private string GetOrderListKey()

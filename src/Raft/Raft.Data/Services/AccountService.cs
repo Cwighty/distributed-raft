@@ -6,6 +6,7 @@ namespace Raft.Data.Services;
 public interface IAccountService
 {
     Task DepositAsync(string username, decimal amount);
+    Task WithdrawAsync(string username, decimal amount);
     Task<int> GetBalanceAsync(string username);
 }
 
@@ -30,6 +31,24 @@ public class AccountService : IAccountService
         {
             var balance = int.Parse(oldValue);
             balance += (int)amount;
+            return balance.ToString();
+        });
+
+        await storageService.IdempodentReduceUntilSuccess(key, currentBalance.ToString(), reducer);
+    }
+
+    public async Task WithdrawAsync(string username, decimal amount)
+    {
+        var key = GetAccountBalanceKey(username);
+        var currentBalance = await GetBalanceAsync(username);
+
+        if (currentBalance < amount)
+            throw new InvalidOperationException("Insufficient balance");
+
+        var reducer = new Func<string, string>(oldValue =>
+        {
+            var balance = int.Parse(oldValue);
+            balance -= (int)amount;
             return balance.ToString();
         });
 

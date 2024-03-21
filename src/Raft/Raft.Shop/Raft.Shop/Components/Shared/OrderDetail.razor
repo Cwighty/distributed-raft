@@ -4,6 +4,7 @@
     <div class="card-body">
         <p><strong>Username:</strong> @OrderInfo.Username</p>
         <p><strong>Order ID:</strong> @OrderId</p>
+        <p><strong>Status:</strong> @Status</p>
         <h6>Products:</h6>
         <ul class="list-group">
             @foreach (var product in OrderInfo.Products)
@@ -24,6 +25,9 @@
 @code {
     [Parameter]
     public Guid OrderId { get; set; }
+
+    [Parameter, EditorRequired]
+    public string Status { get; set; }
 
     [Parameter, EditorRequired]
     public OrderInfo OrderInfo { get; set; }
