@@ -99,7 +99,8 @@ public class OrderService : IOrderService
         var orderListReducer = (string oldValue) =>
         {
             var orderIds = JsonSerializer.Deserialize<List<Guid>>(oldValue);
-            orderIds!.Add(orderId);
+            if (!orderIds!.Contains(orderId))
+                orderIds.Add(orderId);
             var newValue = JsonSerializer.Serialize(orderIds);
             return newValue;
         };
