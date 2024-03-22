@@ -67,7 +67,7 @@ public class StorageService : IStorageService
             catch (HttpRequestException)
             {
                 await Task.Delay(delay);
-                var refetchedValue = await EventualGet(key);
+                var refetchedValue = await StrongGet(key);
                 oldValue = refetchedValue.Value;
                 currentRetry++;
             }
