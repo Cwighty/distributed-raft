@@ -29,7 +29,7 @@ else
             <div class="accordion-item">
                 <h2 class="accordion-header" id="pendingHeading">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pendingCollapse" aria-expanded="false" aria-controls="pendingCollapse">
-                        Pending
+                        Pending (@(orders.Count(o => o.Status.Contains("pending"))))
                     </button>
                 </h2>
                 <div id="pendingCollapse" class="accordion-collapse collapse" aria-labelledby="pendingHeading" data-bs-parent="#orderAccordion">
@@ -55,7 +55,7 @@ else
             <div class="accordion-item">
                 <h2 class="accordion-header" id="processedHeading">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#processedCollapse" aria-expanded="false" aria-controls="processedCollapse">
-                        Processed
+                        Processed (@(orders.Count(o => o.Status.Contains("processed"))))
                     </button>
                 </h2>
                 <div id="processedCollapse" class="accordion-collapse collapse" aria-labelledby="processedHeading" data-bs-parent="#orderAccordion">
@@ -77,7 +77,7 @@ else
             <div class="accordion-item">
                 <h2 class="accordion-header" id="failedHeading">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#failedCollapse" aria-expanded="false" aria-controls="failedCollapse">
-                        Failed
+                        Failed (@(orders.Count(o => o.Status.Contains("rejected"))))
                     </button>
                 </h2>
                 <div id="failedCollapse" class="accordion-collapse collapse" aria-labelledby="failedHeading" data-bs-parent="#orderAccordion">
